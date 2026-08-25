@@ -28,15 +28,18 @@
     header h1 { font-size: 1.6rem; font-weight: 800; background: linear-gradient(135deg, #a855f7, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
     /* 대시보드 */
-    .dashboard-compact { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+    .dashboard-compact { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
     .dash-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 14px 10px; text-align: center; }
     .dash-val { font-size: 1.3rem; font-weight: 800; margin-top: 2px; }
     .dash-lbl { font-size: 0.78rem; color: var(--text-sub); }
 
-    /* 컨트롤 바 */
-    .control-bar { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+    /* 컨트롤 바 및 백업 버튼 */
+    .control-bar { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
     .action-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .backup-row { display: flex; gap: 8px; }
+    
     .btn-primary { background-color: var(--primary); color: white; border: none; padding: 12px 18px; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px; justify-content: center; flex: 1; }
+    .btn-backup { background-color: var(--card-bg); color: var(--text-main); border: 1px solid var(--card-border); padding: 8px 12px; border-radius: 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; flex: 1; justify-content: center; }
     .sort-select { background-color: var(--card-bg); color: var(--text-main); border: 1px solid var(--card-border); padding: 11px 14px; border-radius: 12px; font-size: 0.88rem; outline: none; }
 
     /* 일반 카드 목록 */
@@ -136,6 +139,17 @@
         <option value="cafe">🏢 카페별 모아보기</option>
       </select>
     </div>
+
+    <!-- 백업 및 복구 버튼 -->
+    <div class="backup-row">
+      <button class="btn-backup" onclick="exportData()">
+        <i class="fa-solid fa-download"></i> 데이터 백업 (파일 저장)
+      </button>
+      <button class="btn-backup" onclick="document.getElementById('importFileInput').click()">
+        <i class="fa-solid fa-upload"></i> 데이터 복구 (불러오기)
+      </button>
+      <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
   </div>
 
   <div class="logs-grid" id="logsGrid"></div>
@@ -168,7 +182,6 @@
       <form id="logForm" onsubmit="saveLog(event)">
         <input type="hidden" id="editIndex" value="-1">
 
-        <!-- 사진 첨부 (최상단) -->
         <div class="form-group">
           <label>인증샷 / 보드판 사진</label>
           <div class="img-upload-box" onclick="document.getElementById('imageInput').click()">
@@ -352,7 +365,6 @@
         return;
       }
 
-      // 🏢 카페별 모아보기 처리
       if (sortType === 'cafe') {
         const cafeMap = {};
         logs.forEach((log, index) => {
@@ -386,7 +398,6 @@
         return;
       }
 
-      // 일반 정렬 (최신순 / 오래된순)
       let filtered = logs.map((log, index) => ({ ...log, originalIndex: index }));
       filtered.sort((a, b) => {
         const dateA = new Date(a.playDate || 0);
@@ -434,6 +445,47 @@
       `;
     }
 
+    /* 백업 및 복구 기능 추가 */
+    function exportData() {
+      if (logs.length === 0) {
+        alert("백업할 기록 데이터가 없습니다.");
+        return;
+      }
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(logs, null, 2));
+      const downloadAnchor = document.createElement('a');
+      const today = new Date().toISOString().slice(0, 10);
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `escape_log_backup_${today}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importData(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const imported = JSON.parse(evt.target.result);
+          if (Array.isArray(imported)) {
+            if (confirm(`기존 데이터를 덮어쓰고 ${imported.length}개의 백업 기록을 불러오시겠습니까?`)) {
+              logs = imported;
+              saveLogsToStorage();
+              renderLogs();
+              alert("백업 데이터가 성공적으로 복구되었습니다!");
+            }
+          } else {
+            alert("올바르지 않은 백업 파일 형식입니다.");
+          }
+        } catch (err) {
+          alert("파일을 읽는 도중 오류가 발생했습니다.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
     /* 이미지 크롭(Cropper) 관련 기능 */
     function handleImageSelect(e) {
       const file = e.target.files[0];
@@ -447,7 +499,7 @@
         if (cropper) cropper.destroy();
         const image = document.getElementById('cropImageSrc');
         cropper = new Cropper(image, {
-          aspectRatio: 16 / 9, // 카드 형태 규격
+          aspectRatio: 16 / 9,
           viewMode: 1
         });
       };
