@@ -3,9 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
   <title>방탈출 로그북</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
@@ -22,536 +19,71 @@
       --accent: #f59e0b;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    }
-
-    body {
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      padding: 16px;
-      max-width: 800px;
-      margin: 0 auto;
-      padding-bottom: 60px;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 16px;
-    }
-
-    header h1 {
-      font-size: 1.6rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, #a855f7, #6366f1);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    /* 대시보드 2개 슬림 카드 */
-    .dashboard-compact {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    .dash-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 14px;
-      padding: 14px 10px;
-      text-align: center;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
-
-    .dash-val {
-      font-size: 1.4rem;
-      font-weight: 800;
-      margin-top: 2px;
-    }
-
-    .dash-lbl {
-      font-size: 0.78rem;
-      color: var(--text-sub);
-    }
-
-    .control-bar {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .action-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .btn-primary {
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      padding: 12px 18px;
-      border-radius: 12px;
-      font-weight: 700;
-      font-size: 0.95rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: background-color 0.2s, transform 0.1s;
-      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
-      flex: 1;
-      justify-content: center;
-    }
-
-    .btn-primary:hover {
-      background-color: var(--primary-hover);
-    }
-
-    .btn-primary:active {
-      transform: scale(0.98);
-    }
-
-    .sort-select {
-      background-color: var(--card-bg);
-      color: var(--text-main);
-      border: 1px solid var(--card-border);
-      padding: 11px 14px;
-      border-radius: 12px;
-      font-size: 0.88rem;
-      cursor: pointer;
-      outline: none;
-    }
-
-    .filter-tags {
-      display: flex;
-      gap: 6px;
-      overflow-x: auto;
-      padding-bottom: 4px;
-      scrollbar-width: none;
-    }
-
-    .filter-tags::-webkit-scrollbar {
-      display: none;
-    }
-
-    .tag-chip {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      color: var(--text-sub);
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.2s;
-    }
-
-    .tag-chip.active {
-      background: rgba(139, 92, 246, 0.2);
-      border-color: var(--primary);
-      color: var(--primary);
-      font-weight: 700;
-    }
-
-    .logs-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .log-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 16px;
-      padding: 16px;
-      cursor: pointer;
-      transition: transform 0.15s ease, border-color 0.15s ease;
-    }
-
-    .log-card:hover {
-      border-color: var(--primary);
-    }
-
-    .log-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 10px;
-    }
-
-    .log-title {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--text-main);
-      line-height: 1.3;
-    }
-
-    .log-cafe {
-      font-size: 0.84rem;
-      color: var(--text-sub);
-      margin-top: 2px;
-    }
-
-    .badge {
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 20px;
-      white-space: nowrap;
-    }
-
-    .badge-success {
-      background: rgba(34, 197, 94, 0.15);
-      color: var(--success);
-      border: 1px solid rgba(34, 197, 94, 0.3);
-    }
-
-    .badge-fail {
-      background: rgba(239, 68, 68, 0.15);
-      color: var(--fail);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-    }
-
-    .star-rating, .lock-rating {
-      display: flex;
-      gap: 6px;
-      font-size: 1.4rem;
-      color: #475569;
-      cursor: pointer;
-      user-select: none;
-      margin-top: 4px;
-    }
-
-    .star-rating .fa-star, .lock-rating .fa-lock {
-      transition: color 0.15s, transform 0.1s;
-    }
-
-    .star-rating .fa-star.active {
-      color: var(--accent);
-    }
-
-    .lock-rating .fa-lock.active {
-      color: #f97316;
-    }
-
-    .star-rating .fa-star:hover, .lock-rating .fa-lock:hover {
-      transform: scale(1.15);
-    }
-
-    .rating-text {
-      font-size: 0.85rem;
-      color: var(--accent);
-      font-weight: 700;
-      margin-left: 8px;
-      align-self: center;
-    }
-
-    .difficulty-text {
-      font-size: 0.85rem;
-      color: #f97316;
-      font-weight: 700;
-      margin-left: 8px;
-      align-self: center;
-    }
-
-    .card-ratings {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      margin-top: 6px;
-      flex-wrap: wrap;
-    }
-
-    .card-stars {
-      color: var(--accent);
-      font-size: 0.82rem;
-      display: flex;
-      align-items: center;
-      gap: 2px;
-    }
-
-    .card-locks {
-      color: #f97316;
-      font-size: 0.82rem;
-      display: flex;
-      align-items: center;
-      gap: 2px;
-    }
-
-    .genre-badges {
-      display: flex;
-      gap: 4px;
-      flex-wrap: wrap;
-      margin: 8px 0;
-    }
-
-    .genre-tag {
-      font-size: 0.72rem;
-      background: rgba(255, 255, 255, 0.06);
-      padding: 2px 8px;
-      border-radius: 6px;
-      color: var(--text-sub);
-    }
-
-    .log-details {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      font-size: 0.82rem;
-      color: var(--text-sub);
-      background: rgba(0, 0, 0, 0.2);
-      padding: 10px;
-      border-radius: 10px;
-      margin-top: 8px;
-    }
-
-    .log-details span {
-      color: var(--text-main);
-      font-weight: 600;
-    }
-
-    .thumb-preview {
-      width: 100%;
-      max-height: 140px;
-      object-fit: cover;
-      border-radius: 10px;
-      margin-top: 10px;
-    }
-
-    .card-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .btn-sm-icon {
-      background: none;
-      border: none;
-      color: var(--text-sub);
-      font-size: 0.82rem;
-      cursor: pointer;
-      padding: 4px 8px;
-      border-radius: 6px;
-    }
-
-    .btn-sm-icon:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--text-main);
-    }
-
-    .empty-msg {
-      text-align: center;
-      color: var(--text-sub);
-      padding: 50px 0;
-      font-size: 0.95rem;
-    }
-
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.8);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-      padding: 16px;
-      backdrop-filter: blur(4px);
-    }
-
-    .modal-content {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 20px;
-      width: 100%;
-      max-width: 520px;
-      max-height: 90vh;
-      overflow-y: auto;
-      padding: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .modal-header h2 {
-      font-size: 1.2rem;
-      font-weight: 700;
-    }
-
-    .form-group {
-      margin-bottom: 14px;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 0.82rem;
-      color: var(--text-sub);
-      margin-bottom: 6px;
-    }
-
-    .form-control {
-      width: 100%;
-      padding: 11px;
-      background: #0f172a;
-      border: 1px solid var(--card-border);
-      border-radius: 10px;
-      color: white;
-      font-size: 0.92rem;
-      outline: none;
-    }
-
-    .form-control:focus {
-      border-color: var(--primary);
-    }
-
-    .form-row {
-      display: flex;
-      gap: 10px;
-    }
-
-    .form-row .form-group {
-      flex: 1;
-    }
-
-    .radio-group {
-      display: flex;
-      gap: 8px;
-    }
-
-    .radio-btn {
-      flex: 1;
-      padding: 10px;
-      text-align: center;
-      background: #0f172a;
-      border: 1px solid var(--card-border);
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: 700;
-      font-size: 0.88rem;
-    }
-
-    .radio-btn.active-success {
-      background: var(--success);
-      color: white;
-      border-color: var(--success);
-    }
-
-    .radio-btn.active-fail {
-      background: var(--fail);
-      color: white;
-      border-color: var(--fail);
-    }
-
-    .genre-selector {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .genre-chip {
-      background: #0f172a;
-      border: 1px solid var(--card-border);
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      cursor: pointer;
-      color: var(--text-sub);
-    }
-
-    .genre-chip.selected {
-      background: var(--primary);
-      color: white;
-      border-color: var(--primary);
-      font-weight: 700;
-    }
-
-    .custom-genre-container {
-      margin-top: 8px;
-      display: none;
-    }
-
-    .img-upload-box {
-      border: 2px dashed var(--card-border);
-      border-radius: 10px;
-      padding: 16px;
-      text-align: center;
-      cursor: pointer;
-      background: #0f172a;
-    }
-
-    .img-preview-container {
-      position: relative;
-      margin-top: 10px;
-      display: none;
-    }
-
-    .img-preview-container img {
-      width: 100%;
-      max-height: 180px;
-      object-fit: cover;
-      border-radius: 10px;
-    }
-
-    .btn-remove-img {
-      position: absolute;
-      top: 8px; right: 8px;
-      background: rgba(0,0,0,0.7);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 28px; height: 28px;
-      cursor: pointer;
-    }
-
-    .modal-footer {
-      display: flex;
-      gap: 10px;
-      margin-top: 20px;
-    }
-
-    .btn-secondary {
-      background: #334155;
-      color: white;
-      border: none;
-      padding: 12px;
-      border-radius: 10px;
-      flex: 1;
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    .detail-img {
-      width: 100%;
-      max-height: 260px;
-      object-fit: cover;
-      border-radius: 12px;
-      margin-bottom: 14px;
-    }
-
-    .detail-memo {
-      background: #0f172a;
-      padding: 14px;
-      border-radius: 10px;
-      font-size: 0.92rem;
-      line-height: 1.5;
-      color: var(--text-main);
-      white-space: pre-wrap;
-      word-break: break-all;
-      margin-top: 12px;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-main); padding: 16px; max-width: 800px; margin: 0 auto; padding-bottom: 60px; }
+    header { text-align: center; margin-bottom: 16px; }
+    header h1 { font-size: 1.6rem; font-weight: 800; background: linear-gradient(135deg, #a855f7, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    .dashboard-compact { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+    .dash-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 14px 10px; text-align: center; }
+    .dash-val { font-size: 1.3rem; font-weight: 800; margin-top: 2px; }
+    .dash-lbl { font-size: 0.78rem; color: var(--text-sub); }
+
+    .control-bar { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+    .action-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .btn-primary { background-color: var(--primary); color: white; border: none; padding: 12px 18px; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px; justify-content: center; flex: 1; }
+    .sort-select { background-color: var(--card-bg); color: var(--text-main); border: 1px solid var(--card-border); padding: 11px 14px; border-radius: 12px; font-size: 0.88rem; outline: none; }
+
+    .logs-grid { display: flex; flex-direction: column; gap: 14px; }
+    .log-card { background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 16px; cursor: pointer; }
+    .log-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .log-title { font-size: 1.15rem; font-weight: 700; }
+    .log-cafe { font-size: 0.82rem; color: var(--text-sub); margin-top: 2px; }
+    .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+    .badge-success { background-color: rgba(34, 197, 94, 0.15); color: var(--success); }
+    .badge-fail { background-color: rgba(239, 68, 68, 0.15); color: var(--fail); }
+
+    .ratings-row { display: flex; gap: 12px; font-size: 0.85rem; color: var(--accent); margin: 6px 0; }
+    .genre-badges { display: flex; gap: 4px; flex-wrap: wrap; margin: 8px 0; }
+    .genre-tag { font-size: 0.72rem; background: rgba(255, 255, 255, 0.06); padding: 2px 8px; border-radius: 6px; color: var(--text-sub); }
+
+    .log-details { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 0.82rem; color: var(--text-sub); background: rgba(0, 0, 0, 0.2); padding: 10px; border-radius: 10px; margin-top: 8px; }
+    .thumb-preview { width: 100%; max-height: 140px; object-fit: cover; border-radius: 10px; margin-top: 10px; }
+    .card-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+    .btn-sm-icon { background: none; border: none; color: var(--text-sub); font-size: 0.82rem; cursor: pointer; padding: 4px 8px; }
+
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 16px; }
+    .modal-content { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; padding: 20px; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 0.82rem; color: var(--text-sub); margin-bottom: 6px; }
+    .form-control { width: 100%; padding: 11px; background: #0f172a; border: 1px solid var(--card-border); border-radius: 10px; color: white; font-size: 0.92rem; outline: none; }
+    .form-row { display: flex; gap: 10px; }
+    .form-row .form-group { flex: 1; }
+
+    .radio-group { display: flex; gap: 8px; }
+    .radio-btn { flex: 1; padding: 10px; text-align: center; background: #0f172a; border: 1px solid var(--card-border); border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 0.88rem; }
+    .radio-btn.active-success { background: var(--success); color: white; border-color: var(--success); }
+    .radio-btn.active-fail { background: var(--fail); color: white; border-color: var(--fail); }
+
+    .star-rating, .lock-rating { display: flex; gap: 6px; font-size: 1.3rem; color: #475569; cursor: pointer; }
+    .star-rating .active { color: var(--accent); }
+    .lock-rating .active { color: #38bdf8; }
+
+    .genre-selector { display: flex; flex-wrap: wrap; gap: 6px; }
+    .genre-chip { background: #0f172a; border: 1px solid var(--card-border); padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; color: var(--text-sub); }
+    .genre-chip.selected { background: var(--primary); color: white; border-color: var(--primary); font-weight: 700; }
+
+    .img-upload-box { border: 2px dashed var(--card-border); border-radius: 10px; padding: 16px; text-align: center; cursor: pointer; background: #0f172a; }
+    .img-preview-container { position: relative; margin-top: 10px; display: none; }
+    .img-preview-container img { width: 100%; max-height: 180px; object-fit: cover; border-radius: 10px; }
+    .btn-remove-img { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; }
+
+    .modal-footer { display: flex; gap: 10px; margin-top: 20px; }
+    .btn-secondary { background: #334155; color: white; border: none; padding: 12px; border-radius: 10px; flex: 1; cursor: pointer; font-weight: 600; }
+    .detail-img { width: 100%; max-height: 260px; object-fit: cover; border-radius: 12px; margin-bottom: 14px; }
+    .detail-memo { background: #0f172a; padding: 14px; border-radius: 10px; font-size: 0.92rem; line-height: 1.5; color: var(--text-main); white-space: pre-wrap; margin-top: 12px; }
   </style>
 </head>
 <body>
@@ -560,7 +92,6 @@
     <h1>방탈출 로그북</h1>
   </header>
 
-  <!-- 대시보드: 총 n방 및 성공/실패 개수 -->
   <div class="dashboard-compact">
     <div class="dash-card">
       <div class="dash-lbl">누적 기록</div>
@@ -568,7 +99,7 @@
     </div>
     <div class="dash-card">
       <div class="dash-lbl">성공 / 실패</div>
-      <div class="dash-val" id="recordCount">
+      <div class="dash-val">
         <span id="successCount" style="color: var(--success);">0</span> / <span id="failCount" style="color: var(--fail);">0</span>
       </div>
     </div>
@@ -584,24 +115,11 @@
         <option value="oldest">⏳ 오래된 순</option>
       </select>
     </div>
-
-    <!-- 장르별 필터링 칩 -->
-    <div class="filter-tags" id="genreFilterBar">
-      <div class="tag-chip active" onclick="toggleGenreFilter('ALL', this)">전체</div>
-      <div class="tag-chip" onclick="toggleGenreFilter('공포/스릴러', this)">공포/스릴러</div>
-      <div class="tag-chip" onclick="toggleGenreFilter('추리/미스터리', this)">추리/미스터리</div>
-      <div class="tag-chip" onclick="toggleGenreFilter('감성/드라마', this)">감성/드라마</div>
-      <div class="tag-chip" onclick="toggleGenreFilter('SF/판타지', this)">SF/판타지</div>
-      <div class="tag-chip" onclick="toggleGenreFilter('모험/코믹', this)">모험/코믹</div>
-      <div class="tag-chip" onclick="toggleGenreFilter('잠입/액션', this)">잠입/액션</div>
-      <div class="tag-chip" onclick="toggleGenreFilter('???', this)">???</div>
-      <div class="tag-chip" onclick="toggleGenreFilter('기타', this)">기타</div>
-    </div>
   </div>
 
-  <!-- 기록 카드 목록 -->
   <div class="logs-grid" id="logsGrid"></div>
 
+  <!-- 작성 / 수정 모달 -->
   <div class="modal-overlay" id="formModal">
     <div class="modal-content">
       <div class="modal-header">
@@ -612,9 +130,9 @@
       <form id="logForm" onsubmit="saveLog(event)">
         <input type="hidden" id="editIndex" value="-1">
 
-        <!-- 1. 사진 첨부 (최상단) -->
+        <!-- 사진 첨부 (최상단) -->
         <div class="form-group">
-          <label>인증샷 / 보드판 사진 첨부</label>
+          <label>인증샷 / 보드판 사진</label>
           <div class="img-upload-box" onclick="document.getElementById('imageInput').click()">
             <i class="fa-solid fa-camera fa-lg" style="color: var(--primary);"></i>
             <span style="font-size: 0.85rem; margin-left: 6px; color: var(--text-sub);">사진 선택하기</span>
@@ -639,21 +157,46 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label>플레이 날짜 *</label>
+            <label>플레이 날짜</label>
             <input type="date" id="playDate" class="form-control" required>
           </div>
           <div class="form-group">
-            <label>성공 여부 *</label>
-            <input type="hidden" id="isSuccess" value="성공">
+            <label>탈출 결과</label>
             <div class="radio-group">
-              <button type="button" id="btnSuccess" class="radio-btn active-success" onclick="setResult('성공')">성공</button>
-              <button type="button" id="btnFail" class="radio-btn" onclick="setResult('실패')">실패</button>
+              <div class="radio-btn active-success" id="btnSuccess" onclick="setResult('성공')">성공</div>
+              <div class="radio-btn" id="btnFail" onclick="setResult('실패')">실패</div>
+            </div>
+            <input type="hidden" id="isSuccess" value="성공">
+          </div>
+        </div>
+
+        <!-- 만족도 및 난이도 -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>만족도 (별점)</label>
+            <div class="star-rating" id="starRating">
+              <i class="fa-solid fa-star" onclick="setRating('star', 1)"></i>
+              <i class="fa-solid fa-star" onclick="setRating('star', 2)"></i>
+              <i class="fa-solid fa-star" onclick="setRating('star', 3)"></i>
+              <i class="fa-solid fa-star" onclick="setRating('star', 4)"></i>
+              <i class="fa-solid fa-star" onclick="setRating('star', 5)"></i>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>난이도 (자물쇠)</label>
+            <div class="lock-rating" id="lockRating">
+              <i class="fa-solid fa-lock" onclick="setRating('lock', 1)"></i>
+              <i class="fa-solid fa-lock" onclick="setRating('lock', 2)"></i>
+              <i class="fa-solid fa-lock" onclick="setRating('lock', 3)"></i>
+              <i class="fa-solid fa-lock" onclick="setRating('lock', 4)"></i>
+              <i class="fa-solid fa-lock" onclick="setRating('lock', 5)"></i>
             </div>
           </div>
         </div>
 
+        <!-- 장르 중복 선택 -->
         <div class="form-group">
-          <label>장르 선택 (중복 가능)</label>
+          <label>장르 선택 (다중 선택 가능)</label>
           <div class="genre-selector" id="modalGenreChips">
             <div class="genre-chip" onclick="toggleFormGenre('공포/스릴러', this)">공포/스릴러</div>
             <div class="genre-chip" onclick="toggleFormGenre('추리/미스터리', this)">추리/미스터리</div>
@@ -662,41 +205,9 @@
             <div class="genre-chip" onclick="toggleFormGenre('모험/코믹', this)">모험/코믹</div>
             <div class="genre-chip" onclick="toggleFormGenre('잠입/액션', this)">잠입/액션</div>
             <div class="genre-chip" onclick="toggleFormGenre('???', this)">???</div>
-            <div class="genre-chip" id="customGenreChip" onclick="toggleFormGenre('기타', this)">기타</div>
+            <div class="genre-chip" id="etcChip" onclick="toggleFormGenre('기타', this)">기타</div>
           </div>
-          <div class="custom-genre-container" id="customGenreWrapper">
-            <input type="text" id="customGenreInput" class="form-control" placeholder="기타 장르 직접 입력">
-          </div>
-        </div>
-
-        <!-- 별점 평가 -->
-        <div class="form-group">
-          <label>테마 만족도 (별점)</label>
-          <div style="display: flex; align-items: center;">
-            <div class="star-rating" id="starRatingBox">
-              <i class="fa-solid fa-star active" data-score="1" onclick="setRating(1)"></i>
-              <i class="fa-solid fa-star active" data-score="2" onclick="setRating(2)"></i>
-              <i class="fa-solid fa-star active" data-score="3" onclick="setRating(3)"></i>
-              <i class="fa-solid fa-star active" data-score="4" onclick="setRating(4)"></i>
-              <i class="fa-solid fa-star active" data-score="5" onclick="setRating(5)"></i>
-            </div>
-            <span class="rating-text" id="ratingScoreText">5점</span>
-          </div>
-        </div>
-
-        <!-- 난이도 평가 -->
-        <div class="form-group">
-          <label>난이도 (자물쇠)</label>
-          <div style="display: flex; align-items: center;">
-            <div class="lock-rating" id="lockRatingBox">
-              <i class="fa-solid fa-lock active" data-score="1" onclick="setDifficulty(1)"></i>
-              <i class="fa-solid fa-lock active" data-score="2" onclick="setDifficulty(2)"></i>
-              <i class="fa-solid fa-lock active" data-score="3" onclick="setDifficulty(3)"></i>
-              <i class="fa-solid fa-lock" data-score="4" onclick="setDifficulty(4)"></i>
-              <i class="fa-solid fa-lock" data-score="5" onclick="setDifficulty(5)"></i>
-            </div>
-            <span class="difficulty-text" id="difficultyScoreText">3단계</span>
-          </div>
+          <input type="text" id="etcGenreInput" class="form-control" style="display:none; margin-top:8px;" placeholder="기타 장르를 직접 입력하세요">
         </div>
 
         <div class="form-row">
@@ -717,7 +228,7 @@
 
         <div class="form-group">
           <label>탈출 후기 / 메모</label>
-          <textarea id="memo" class="form-control" rows="3" placeholder="기억하고 싶은 후기를 남겨보세요."></textarea>
+          <textarea id="memo" class="form-control" rows="3" placeholder="후기를 자유롭게 적어보세요."></textarea>
         </div>
 
         <div class="modal-footer">
@@ -728,6 +239,7 @@
     </div>
   </div>
 
+  <!-- 상세보기 모달 -->
   <div class="modal-overlay" id="detailModal">
     <div class="modal-content">
       <div class="modal-header">
@@ -739,12 +251,8 @@
 
       <h2 id="detailTitle" style="font-size: 1.3rem; margin-bottom: 4px;"></h2>
       <div id="detailCafe" style="color: var(--text-sub); font-size: 0.88rem; margin-bottom: 8px;"></div>
-      
-      <div class="card-ratings" style="font-size: 0.95rem; margin-bottom: 12px;">
-        <div id="detailStars" class="card-stars"></div>
-        <div id="detailDifficulty" class="card-locks"></div>
-      </div>
 
+      <div class="ratings-row" id="detailRatings"></div>
       <div id="detailGenres" class="genre-badges" style="margin-bottom: 12px;"></div>
 
       <div class="log-details">
@@ -764,18 +272,29 @@
   </div>
 
   <script>
-    let logs = JSON.parse(localStorage.getItem('escapeLogs') || '[]');
-    let selectedFilterGenres = [];
+    // 로컬 스토리지 안전 불러오기
+    function getStoredLogs() {
+      try {
+        const stored = localStorage.getItem('escapeLogs');
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        console.error("데이터를 읽는 도중 오류가 발생했습니다.", e);
+        return [];
+      }
+    }
+
+    let logs = getStoredLogs();
     let selectedFormGenres = [];
     let currentBase64Image = '';
-    let currentRating = 5;
-    let currentDifficulty = 3;
+    let currentStarRating = 0;
+    let currentLockRating = 0;
 
-    const STANDARD_GENRES = ['공포/스릴러', '추리/미스터리', '감성/드라마', 'SF/판타지', '모험/코믹', '잠입/액션', '???'];
-
-    const playDateInput = document.getElementById('playDate');
-    if (playDateInput) {
-      playDateInput.valueAsDate = new Date();
+    function saveLogsToStorage() {
+      try {
+        localStorage.setItem('escapeLogs', JSON.stringify(logs));
+      } catch (e) {
+        alert("사진 용량이 너무 커서 저장되지 않을 수 있습니다. 사진을 다시 올려보세요!");
+      }
     }
 
     function updateStats() {
@@ -788,117 +307,49 @@
       document.getElementById('failCount').innerText = fail;
     }
 
-    function setRating(score) {
-      currentRating = score;
-      const stars = document.querySelectorAll('#starRatingBox .fa-star');
-      stars.forEach((star, idx) => {
-        if (idx < score) {
-          star.classList.add('active');
-        } else {
-          star.classList.remove('active');
-        }
-      });
-      document.getElementById('ratingScoreText').innerText = score + '점';
-    }
-
-    function setDifficulty(score) {
-      currentDifficulty = score;
-      const locks = document.querySelectorAll('#lockRatingBox .fa-lock');
-      locks.forEach((lock, idx) => {
-        if (idx < score) {
-          lock.classList.add('active');
-        } else {
-          lock.classList.remove('active');
-        }
-      });
-      document.getElementById('difficultyScoreText').innerText = score + '단계';
-    }
-
-    function toggleGenreFilter(genre, el) {
-      if (genre === 'ALL') {
-        selectedFilterGenres = [];
-        document.querySelectorAll('#genreFilterBar .tag-chip').forEach(c => c.classList.remove('active'));
-        el.classList.add('active');
-      } else {
-        document.querySelector('#genreFilterBar .tag-chip').classList.remove('active');
-        if (selectedFilterGenres.includes(genre)) {
-          selectedFilterGenres = selectedFilterGenres.filter(g => g !== genre);
-          el.classList.remove('active');
-        } else {
-          selectedFilterGenres.push(genre);
-          el.classList.add('active');
-        }
-        if (selectedFilterGenres.length === 0) {
-          document.querySelector('#genreFilterBar .tag-chip').classList.add('active');
-        }
-      }
-      renderLogs();
-    }
-
     function renderLogs() {
       updateStats();
       const grid = document.getElementById('logsGrid');
       const sortType = document.getElementById('sortSelect').value;
 
       if (logs.length === 0) {
-        grid.innerHTML = '<div class="empty-msg">등록된 방탈출 기록이 없습니다.<br>상단 버튼을 눌러 새 기록을 작성해 보세요!</div>';
+        grid.innerHTML = '<div style="text-align:center; color: var(--text-sub); padding: 50px 0;">등록된 기록이 없습니다.<br>버튼을 눌러 새로운 탈출 기록을 입력해보세요!</div>';
         return;
       }
 
       let filtered = logs.map((log, index) => ({ ...log, originalIndex: index }));
-
-      // 장르 필터링
-      if (selectedFilterGenres.length > 0) {
-        filtered = filtered.filter(log => {
-          if (!log.genres) return false;
-          return selectedFilterGenres.some(filterG => {
-            if (filterG === '기타') {
-              return log.genres.some(g => !STANDARD_GENRES.includes(g));
-            }
-            return log.genres.includes(filterG);
-          });
-        });
-      }
-
-      // 정렬 처리
       filtered.sort((a, b) => {
         const dateA = new Date(a.playDate || 0);
         const dateB = new Date(b.playDate || 0);
         return sortType === 'latest' ? dateB - dateA : dateA - dateB;
       });
 
-      if (filtered.length === 0) {
-        grid.innerHTML = '<div class="empty-msg">선택한 장르의 기록이 없습니다.</div>';
-        return;
-      }
-
       grid.innerHTML = filtered.map((log) => {
         const isSucc = log.isSuccess === '성공';
         const genreTags = (log.genres || []).map(g => `<span class="genre-tag">${escapeHtml(g)}</span>`).join('');
-        const ratingVal = log.rating || 5;
-        const diffVal = log.difficulty || 3;
         
-        const starIcons = '★'.repeat(ratingVal) + '☆'.repeat(5 - ratingVal);
-        const lockIcons = Array.from({length: 5}, (_, i) => 
-          `<i class="fa-solid fa-lock" style="color: ${i < diffVal ? '#f97316' : '#475569'};"></i>`
-        ).join('');
-        
+        let starsHtml = '';
+        if (log.starRating) {
+          starsHtml = `<span style="color:var(--accent);">★ ${log.starRating}</span>`;
+        }
+        let locksHtml = '';
+        if (log.lockRating) {
+          locksHtml = `<span style="color:#38bdf8;">🔒 ${log.lockRating}</span>`;
+        }
+
         return `
           <div class="log-card" onclick="openDetailModal(${log.originalIndex})">
             <div class="log-top">
               <div>
                 <div class="log-title">${escapeHtml(log.themeName)}</div>
                 <div class="log-cafe">${escapeHtml(log.cafeName)}</div>
-                <div class="card-ratings">
-                  <div class="card-stars">${starIcons} <span style="font-size:0.75rem; color:var(--text-sub);">(${ratingVal}점)</span></div>
-                  <div class="card-locks">${lockIcons} <span style="font-size:0.75rem; color:var(--text-sub);">(${diffVal}단계)</span></div>
-                </div>
               </div>
               <span class="badge ${isSucc ? 'badge-success' : 'badge-fail'}">
                 ${isSucc ? '성공' : '실패'}
               </span>
             </div>
 
+            ${(starsHtml || locksHtml) ? `<div class="ratings-row">${starsHtml} ${locksHtml}</div>` : ''}
             ${genreTags ? `<div class="genre-badges">${genreTags}</div>` : ''}
 
             <div class="log-details">
@@ -923,7 +374,7 @@
 
       const badgeEl = document.getElementById('detailBadge');
       badgeEl.className = `badge ${isSucc ? 'badge-success' : 'badge-fail'}`;
-      badgeEl.innerText = isSucc ? '탈출 성공' : '탈출 실패';
+      badgeEl.innerText = isSucc ? '성공' : '실패';
 
       document.getElementById('detailTitle').innerText = log.themeName;
       document.getElementById('detailCafe').innerText = log.cafeName;
@@ -932,21 +383,14 @@
       document.getElementById('detailHint').innerText = log.hintCount || '-';
       document.getElementById('detailParty').innerText = log.partyMembers || '-';
 
-      const ratingVal = log.rating || 5;
-      document.getElementById('detailStars').innerHTML = '★'.repeat(ratingVal) + '☆'.repeat(5 - ratingVal) + ` <span style="font-size: 0.82rem; color: var(--accent); font-weight: 700; margin-left: 2px;">${ratingVal}점</span>`;
-
-      const diffVal = log.difficulty || 3;
-      const lockIcons = Array.from({length: 5}, (_, i) => 
-        `<i class="fa-solid fa-lock" style="color: ${i < diffVal ? '#f97316' : '#475569'}; margin-right: 1px;"></i>`
-      ).join('');
-      document.getElementById('detailDifficulty').innerHTML = lockIcons + ` <span style="font-size: 0.82rem; color: #f97316; font-weight: 700; margin-left: 2px;">난이도 ${diffVal}단계</span>`;
-
       const imgArea = document.getElementById('detailImageArea');
-      if (log.image) {
-        imgArea.innerHTML = `<img src="${log.image}" class="detail-img" alt="인증샷">`;
-      } else {
-        imgArea.innerHTML = '';
-      }
+      imgArea.innerHTML = log.image ? `<img src="${log.image}" class="detail-img" alt="인증샷">` : '';
+
+      const ratingsArea = document.getElementById('detailRatings');
+      let rHtml = '';
+      if (log.starRating) rHtml += `<span>★ 만족도: ${log.starRating}점</span> `;
+      if (log.lockRating) rHtml += `<span style="color:#38bdf8; margin-left:8px;">🔒 난이도: ${log.lockRating}단계</span>`;
+      ratingsArea.innerHTML = rHtml;
 
       const genresArea = document.getElementById('detailGenres');
       genresArea.innerHTML = (log.genres || []).map(g => `<span class="genre-tag">${escapeHtml(g)}</span>`).join('');
@@ -978,11 +422,10 @@
       document.getElementById('playDate').valueAsDate = new Date();
       selectedFormGenres = [];
       document.querySelectorAll('#modalGenreChips .genre-chip').forEach(c => c.classList.remove('selected'));
-      document.getElementById('customGenreWrapper').style.display = 'none';
-      document.getElementById('customGenreInput').value = '';
+      document.getElementById('etcGenreInput').style.display = 'none';
+      setRating('star', 0);
+      setRating('lock', 0);
       removeImage();
-      setRating(5);
-      setDifficulty(3);
       setResult('성공');
       document.getElementById('formModalTitle').innerText = '새 기록 작성';
       document.getElementById('formModal').style.display = 'flex';
@@ -992,27 +435,41 @@
       document.getElementById('formModal').style.display = 'none';
     }
 
+    function setRating(type, val) {
+      if (type === 'star') {
+        currentStarRating = val;
+        const stars = document.querySelectorAll('#starRating i');
+        stars.forEach((s, idx) => {
+          s.classList.toggle('active', idx < val);
+        });
+      } else {
+        currentLockRating = val;
+        const locks = document.querySelectorAll('#lockRating i');
+        locks.forEach((l, idx) => {
+          l.classList.toggle('active', idx < val);
+        });
+      }
+    }
+
     function toggleFormGenre(genre, el) {
       if (genre === '기타') {
-        const customWrapper = document.getElementById('customGenreWrapper');
-        if (selectedFormGenres.includes('기타')) {
-          selectedFormGenres = selectedFormGenres.filter(g => g !== '기타');
+        const input = document.getElementById('etcGenreInput');
+        if (el.classList.contains('selected')) {
           el.classList.remove('selected');
-          customWrapper.style.display = 'none';
+          input.style.display = 'none';
         } else {
-          selectedFormGenres.push('기타');
           el.classList.add('selected');
-          customWrapper.style.display = 'block';
-          document.getElementById('customGenreInput').focus();
+          input.style.display = 'block';
         }
+        return;
+      }
+
+      if (selectedFormGenres.includes(genre)) {
+        selectedFormGenres = selectedFormGenres.filter(g => g !== genre);
+        el.classList.remove('selected');
       } else {
-        if (selectedFormGenres.includes(genre)) {
-          selectedFormGenres = selectedFormGenres.filter(g => g !== genre);
-          el.classList.remove('selected');
-        } else {
-          selectedFormGenres.push(genre);
-          el.classList.add('selected');
-        }
+        selectedFormGenres.push(genre);
+        el.classList.add('selected');
       }
     }
 
@@ -1041,7 +498,7 @@
           const canvas = document.createElement('canvas');
           let width = img.width;
           let height = img.height;
-          const maxW = 800;
+          const maxW = 600; // 저장 용량 경량화
 
           if (width > maxW) {
             height = Math.round((height * maxW) / width);
@@ -1053,7 +510,7 @@
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
 
-          currentBase64Image = canvas.toDataURL('image/jpeg', 0.7);
+          currentBase64Image = canvas.toDataURL('image/jpeg', 0.6);
           document.getElementById('imgPreview').src = currentBase64Image;
           document.getElementById('imgPreviewContainer').style.display = 'block';
         };
@@ -1073,28 +530,20 @@
       e.preventDefault();
       const index = parseInt(document.getElementById('editIndex').value);
 
-      let finalGenres = [];
-      const customVal = document.getElementById('customGenreInput').value.trim();
-
-      selectedFormGenres.forEach(g => {
-        if (g === '기타') {
-          if (customVal !== '') {
-            finalGenres.push(customVal);
-          } else {
-            finalGenres.push('기타');
-          }
-        } else {
-          finalGenres.push(g);
-        }
-      });
+      let finalGenres = [...selectedFormGenres];
+      const etcChip = document.getElementById('etcChip');
+      if (etcChip.classList.contains('selected')) {
+        const etcVal = document.getElementById('etcGenreInput').value.trim();
+        if (etcVal) finalGenres.push(etcVal);
+      }
 
       const logData = {
         themeName: document.getElementById('themeName').value,
         cafeName: document.getElementById('cafeName').value,
-        rating: currentRating,
-        difficulty: currentDifficulty,
         playDate: document.getElementById('playDate').value,
         isSuccess: document.getElementById('isSuccess').value,
+        starRating: currentStarRating,
+        lockRating: currentLockRating,
         genres: finalGenres,
         timeLeft: document.getElementById('timeLeft').value,
         hintCount: document.getElementById('hintCount').value,
@@ -1109,7 +558,7 @@
         logs[index] = logData;
       }
 
-      localStorage.setItem('escapeLogs', JSON.stringify(logs));
+      saveLogsToStorage();
       closeFormModal();
       renderLogs();
     }
@@ -1125,37 +574,34 @@
       document.getElementById('partyMembers').value = log.partyMembers || '';
       document.getElementById('memo').value = log.memo || '';
       setResult(log.isSuccess);
-      setRating(log.rating || 5);
-      setDifficulty(log.difficulty || 3);
+      setRating('star', log.starRating || 0);
+      setRating('lock', log.lockRating || 0);
 
       selectedFormGenres = [];
-      let customGenreText = '';
-      const chips = document.querySelectorAll('#modalGenreChips .genre-chip');
-      chips.forEach(c => c.classList.remove('selected'));
+      const etcInput = document.getElementById('etcGenreInput');
+      const etcChip = document.getElementById('etcChip');
+      etcInput.style.display = 'none';
+      etcChip.classList.remove('selected');
+
+      const defaultGenres = ['공포/스릴러', '추리/미스터리', '감성/드라마', 'SF/판타지', '모험/코믹', '잠입/액션', '???'];
 
       (log.genres || []).forEach(g => {
-        if (STANDARD_GENRES.includes(g)) {
+        if (defaultGenres.includes(g)) {
           selectedFormGenres.push(g);
-          chips.forEach(chip => {
-            if (chip.innerText === g) chip.classList.add('selected');
-          });
         } else {
-          if (!selectedFormGenres.includes('기타')) {
-            selectedFormGenres.push('기타');
-            customGenreText = g;
-            document.getElementById('customGenreChip').classList.add('selected');
-          }
+          etcChip.classList.add('selected');
+          etcInput.style.display = 'block';
+          etcInput.value = g;
         }
       });
 
-      const customWrapper = document.getElementById('customGenreWrapper');
-      if (selectedFormGenres.includes('기타')) {
-        customWrapper.style.display = 'block';
-        document.getElementById('customGenreInput').value = customGenreText;
-      } else {
-        customWrapper.style.display = 'none';
-        document.getElementById('customGenreInput').value = '';
-      }
+      document.querySelectorAll('#modalGenreChips .genre-chip').forEach(chip => {
+        if (selectedFormGenres.includes(chip.innerText)) {
+          chip.classList.add('selected');
+        } else if (chip.innerText !== '기타') {
+          chip.classList.remove('selected');
+        }
+      });
 
       if (log.image) {
         currentBase64Image = log.image;
@@ -1170,9 +616,9 @@
     }
 
     function deleteLog(index) {
-      if (confirm('이 방탈출 기록을 정말 삭제하시겠습니까?')) {
+      if (confirm('이 방탈출 기록을 삭제하시겠습니까?')) {
         logs.splice(index, 1);
-        localStorage.setItem('escapeLogs', JSON.stringify(logs));
+        saveLogsToStorage();
         renderLogs();
       }
     }
@@ -1182,7 +628,6 @@
       return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    // 초기 실행
     renderLogs();
   </script>
 </body>
