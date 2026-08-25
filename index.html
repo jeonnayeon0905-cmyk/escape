@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>방탈출 로그북</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <!-- Cropper.js (사진 자르기 라이브러리) -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   <style>
     :root {
       --bg-color: #0f172a;
@@ -24,16 +27,19 @@
     header { text-align: center; margin-bottom: 16px; }
     header h1 { font-size: 1.6rem; font-weight: 800; background: linear-gradient(135deg, #a855f7, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
+    /* 대시보드 */
     .dashboard-compact { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
     .dash-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 14px 10px; text-align: center; }
     .dash-val { font-size: 1.3rem; font-weight: 800; margin-top: 2px; }
     .dash-lbl { font-size: 0.78rem; color: var(--text-sub); }
 
+    /* 컨트롤 바 */
     .control-bar { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
     .action-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
     .btn-primary { background-color: var(--primary); color: white; border: none; padding: 12px 18px; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px; justify-content: center; flex: 1; }
     .sort-select { background-color: var(--card-bg); color: var(--text-main); border: 1px solid var(--card-border); padding: 11px 14px; border-radius: 12px; font-size: 0.88rem; outline: none; }
 
+    /* 일반 카드 목록 */
     .logs-grid { display: flex; flex-direction: column; gap: 14px; }
     .log-card { background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 16px; cursor: pointer; }
     .log-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
@@ -48,11 +54,21 @@
     .genre-tag { font-size: 0.72rem; background: rgba(255, 255, 255, 0.06); padding: 2px 8px; border-radius: 6px; color: var(--text-sub); }
 
     .log-details { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 0.82rem; color: var(--text-sub); background: rgba(0, 0, 0, 0.2); padding: 10px; border-radius: 10px; margin-top: 8px; }
-    .thumb-preview { width: 100%; max-height: 140px; object-fit: cover; border-radius: 10px; margin-top: 10px; }
+    .thumb-preview { width: 100%; max-height: 200px; object-fit: cover; border-radius: 10px; margin-top: 10px; }
     .card-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
     .btn-sm-icon { background: none; border: none; color: var(--text-sub); font-size: 0.82rem; cursor: pointer; padding: 4px 8px; }
 
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 16px; }
+    /* 카페별 아코디언 스타일 */
+    .cafe-accordion { display: flex; flex-direction: column; gap: 10px; }
+    .cafe-group { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; overflow: hidden; }
+    .cafe-header { padding: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: rgba(255,255,255,0.02); }
+    .cafe-name { font-size: 1.05rem; font-weight: 700; }
+    .cafe-stats { font-size: 0.8rem; color: var(--text-sub); margin-top: 2px; }
+    .cafe-body { display: none; padding: 12px; border-top: 1px solid var(--card-border); background: #0f172a; flex-direction: column; gap: 10px; }
+    .cafe-group.open .cafe-body { display: flex; }
+
+    /* 모달 */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 16px; }
     .modal-content { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; padding: 20px; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     
@@ -77,12 +93,16 @@
 
     .img-upload-box { border: 2px dashed var(--card-border); border-radius: 10px; padding: 16px; text-align: center; cursor: pointer; background: #0f172a; }
     .img-preview-container { position: relative; margin-top: 10px; display: none; }
-    .img-preview-container img { width: 100%; max-height: 180px; object-fit: cover; border-radius: 10px; }
+    .img-preview-container img { width: 100%; max-height: 220px; object-fit: cover; border-radius: 10px; }
     .btn-remove-img { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; }
+
+    /* 자르기(Cropper) 모달 전용 */
+    .crop-container { width: 100%; max-height: 350px; background: #000; overflow: hidden; border-radius: 10px; }
+    .crop-container img { max-width: 100%; }
 
     .modal-footer { display: flex; gap: 10px; margin-top: 20px; }
     .btn-secondary { background: #334155; color: white; border: none; padding: 12px; border-radius: 10px; flex: 1; cursor: pointer; font-weight: 600; }
-    .detail-img { width: 100%; max-height: 260px; object-fit: cover; border-radius: 12px; margin-bottom: 14px; }
+    .detail-img { width: 100%; max-height: 280px; object-fit: cover; border-radius: 12px; margin-bottom: 14px; }
     .detail-memo { background: #0f172a; padding: 14px; border-radius: 10px; font-size: 0.92rem; line-height: 1.5; color: var(--text-main); white-space: pre-wrap; margin-top: 12px; }
   </style>
 </head>
@@ -113,11 +133,29 @@
       <select class="sort-select" id="sortSelect" onchange="renderLogs()">
         <option value="latest">⏱️ 최신순</option>
         <option value="oldest">⏳ 오래된 순</option>
+        <option value="cafe">🏢 카페별 모아보기</option>
       </select>
     </div>
   </div>
 
   <div class="logs-grid" id="logsGrid"></div>
+
+  <!-- 이미지 자르기(Crop) 모달 -->
+  <div class="modal-overlay" id="cropModal" style="z-index: 1100;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>사진 자르기</h2>
+        <button class="btn-sm-icon" onclick="closeCropModal()"><i class="fa-solid fa-xmark fa-lg"></i></button>
+      </div>
+      <div class="crop-container">
+        <img id="cropImageSrc" src="">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeCropModal()">취소</button>
+        <button type="button" class="btn-primary" onclick="applyCrop()">자르기 적용</button>
+      </div>
+    </div>
+  </div>
 
   <!-- 작성 / 수정 모달 -->
   <div class="modal-overlay" id="formModal">
@@ -135,9 +173,9 @@
           <label>인증샷 / 보드판 사진</label>
           <div class="img-upload-box" onclick="document.getElementById('imageInput').click()">
             <i class="fa-solid fa-camera fa-lg" style="color: var(--primary);"></i>
-            <span style="font-size: 0.85rem; margin-left: 6px; color: var(--text-sub);">사진 선택하기</span>
+            <span style="font-size: 0.85rem; margin-left: 6px; color: var(--text-sub);">사진 선택 및 편집</span>
           </div>
-          <input type="file" id="imageInput" accept="image/*" style="display:none" onchange="handleImageUpload(event)">
+          <input type="file" id="imageInput" accept="image/*" style="display:none" onchange="handleImageSelect(event)">
           
           <div class="img-preview-container" id="imgPreviewContainer">
             <img id="imgPreview" src="" alt="미리보기">
@@ -170,7 +208,6 @@
           </div>
         </div>
 
-        <!-- 만족도 및 난이도 -->
         <div class="form-row">
           <div class="form-group">
             <label>만족도 (별점)</label>
@@ -194,7 +231,6 @@
           </div>
         </div>
 
-        <!-- 장르 중복 선택 -->
         <div class="form-group">
           <label>장르 선택 (다중 선택 가능)</label>
           <div class="genre-selector" id="modalGenreChips">
@@ -272,13 +308,11 @@
   </div>
 
   <script>
-    // 로컬 스토리지 안전 불러오기
     function getStoredLogs() {
       try {
         const stored = localStorage.getItem('escapeLogs');
         return stored ? JSON.parse(stored) : [];
       } catch (e) {
-        console.error("데이터를 읽는 도중 오류가 발생했습니다.", e);
         return [];
       }
     }
@@ -288,12 +322,13 @@
     let currentBase64Image = '';
     let currentStarRating = 0;
     let currentLockRating = 0;
+    let cropper = null;
 
     function saveLogsToStorage() {
       try {
         localStorage.setItem('escapeLogs', JSON.stringify(logs));
       } catch (e) {
-        alert("사진 용량이 너무 커서 저장되지 않을 수 있습니다. 사진을 다시 올려보세요!");
+        alert("저장 용량이 부족합니다. 이미지 크기를 줄이거나 기존 기록을 확인해보세요.");
       }
     }
 
@@ -317,6 +352,41 @@
         return;
       }
 
+      // 🏢 카페별 모아보기 처리
+      if (sortType === 'cafe') {
+        const cafeMap = {};
+        logs.forEach((log, index) => {
+          const cafe = log.cafeName.trim() || '기타 매장';
+          if (!cafeMap[cafe]) cafeMap[cafe] = [];
+          cafeMap[cafe].push({ ...log, originalIndex: index });
+        });
+
+        let cafeHtml = '<div class="cafe-accordion">';
+        for (const cafe in cafeMap) {
+          const cafeLogs = cafeMap[cafe];
+          const succCount = cafeLogs.filter(l => l.isSuccess === '성공').length;
+          
+          cafeHtml += `
+            <div class="cafe-group">
+              <div class="cafe-header" onclick="this.parentElement.classList.toggle('open')">
+                <div>
+                  <div class="cafe-name">🏢 ${escapeHtml(cafe)}</div>
+                  <div class="cafe-stats">방문 횟수: ${cafeLogs.length}회 | 성공: ${succCount}회</div>
+                </div>
+                <i class="fa-solid fa-chevron-down" style="color: var(--text-sub);"></i>
+              </div>
+              <div class="cafe-body">
+                ${cafeLogs.map(log => renderSingleCardHtml(log)).join('')}
+              </div>
+            </div>
+          `;
+        }
+        cafeHtml += '</div>';
+        grid.innerHTML = cafeHtml;
+        return;
+      }
+
+      // 일반 정렬 (최신순 / 오래된순)
       let filtered = logs.map((log, index) => ({ ...log, originalIndex: index }));
       filtered.sort((a, b) => {
         const dateA = new Date(a.playDate || 0);
@@ -324,50 +394,91 @@
         return sortType === 'latest' ? dateB - dateA : dateA - dateB;
       });
 
-      grid.innerHTML = filtered.map((log) => {
-        const isSucc = log.isSuccess === '성공';
-        const genreTags = (log.genres || []).map(g => `<span class="genre-tag">${escapeHtml(g)}</span>`).join('');
-        
-        let starsHtml = '';
-        if (log.starRating) {
-          starsHtml = `<span style="color:var(--accent);">★ ${log.starRating}</span>`;
-        }
-        let locksHtml = '';
-        if (log.lockRating) {
-          locksHtml = `<span style="color:#38bdf8;">🔒 ${log.lockRating}</span>`;
-        }
-
-        return `
-          <div class="log-card" onclick="openDetailModal(${log.originalIndex})">
-            <div class="log-top">
-              <div>
-                <div class="log-title">${escapeHtml(log.themeName)}</div>
-                <div class="log-cafe">${escapeHtml(log.cafeName)}</div>
-              </div>
-              <span class="badge ${isSucc ? 'badge-success' : 'badge-fail'}">
-                ${isSucc ? '성공' : '실패'}
-              </span>
-            </div>
-
-            ${(starsHtml || locksHtml) ? `<div class="ratings-row">${starsHtml} ${locksHtml}</div>` : ''}
-            ${genreTags ? `<div class="genre-badges">${genreTags}</div>` : ''}
-
-            <div class="log-details">
-              <div>날짜: <span>${log.playDate || '-'}</span></div>
-              <div>남은 시간: <span>${escapeHtml(log.timeLeft) || '-'}</span></div>
-            </div>
-
-            ${log.image ? `<img src="${log.image}" class="thumb-preview" alt="인증샷">` : ''}
-
-            <div class="card-actions" onclick="event.stopPropagation()">
-              <button class="btn-sm-icon" onclick="editLog(${log.originalIndex})"><i class="fa-solid fa-pen-to-square"></i> 수정</button>
-              <button class="btn-sm-icon" onclick="deleteLog(${log.originalIndex})" style="color: var(--fail);"><i class="fa-solid fa-trash"></i> 삭제</button>
-            </div>
-          </div>
-        `;
-      }).join('');
+      grid.innerHTML = filtered.map(log => renderSingleCardHtml(log)).join('');
     }
 
+    function renderSingleCardHtml(log) {
+      const isSucc = log.isSuccess === '성공';
+      const genreTags = (log.genres || []).map(g => `<span class="genre-tag">${escapeHtml(g)}</span>`).join('');
+      
+      let starsHtml = log.starRating ? `<span style="color:var(--accent);">★ ${log.starRating}</span>` : '';
+      let locksHtml = log.lockRating ? `<span style="color:#38bdf8;">🔒 ${log.lockRating}</span>` : '';
+
+      return `
+        <div class="log-card" onclick="openDetailModal(${log.originalIndex})">
+          <div class="log-top">
+            <div>
+              <div class="log-title">${escapeHtml(log.themeName)}</div>
+              <div class="log-cafe">${escapeHtml(log.cafeName)}</div>
+            </div>
+            <span class="badge ${isSucc ? 'badge-success' : 'badge-fail'}">
+              ${isSucc ? '성공' : '실패'}
+            </span>
+          </div>
+
+          ${(starsHtml || locksHtml) ? `<div class="ratings-row">${starsHtml} ${locksHtml}</div>` : ''}
+          ${genreTags ? `<div class="genre-badges">${genreTags}</div>` : ''}
+
+          <div class="log-details">
+            <div>날짜: <span>${log.playDate || '-'}</span></div>
+            <div>남은 시간: <span>${escapeHtml(log.timeLeft) || '-'}</span></div>
+          </div>
+
+          ${log.image ? `<img src="${log.image}" class="thumb-preview" alt="인증샷">` : ''}
+
+          <div class="card-actions" onclick="event.stopPropagation()">
+            <button class="btn-sm-icon" onclick="editLog(${log.originalIndex})"><i class="fa-solid fa-pen-to-square"></i> 수정</button>
+            <button class="btn-sm-icon" onclick="deleteLog(${log.originalIndex})" style="color: var(--fail);"><i class="fa-solid fa-trash"></i> 삭제</button>
+          </div>
+        </div>
+      `;
+    }
+
+    /* 이미지 크롭(Cropper) 관련 기능 */
+    function handleImageSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        document.getElementById('cropImageSrc').src = evt.target.result;
+        document.getElementById('cropModal').style.display = 'flex';
+
+        if (cropper) cropper.destroy();
+        const image = document.getElementById('cropImageSrc');
+        cropper = new Cropper(image, {
+          aspectRatio: 16 / 9, // 카드 형태 규격
+          viewMode: 1
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function applyCrop() {
+      if (!cropper) return;
+      const canvas = cropper.getCroppedCanvas({
+        width: 800,
+        height: 450
+      });
+      currentBase64Image = canvas.toDataURL('image/jpeg', 0.7);
+      document.getElementById('imgPreview').src = currentBase64Image;
+      document.getElementById('imgPreviewContainer').style.display = 'block';
+      closeCropModal();
+    }
+
+    function closeCropModal() {
+      document.getElementById('cropModal').style.display = 'none';
+      if (cropper) cropper.destroy();
+    }
+
+    function removeImage() {
+      currentBase64Image = '';
+      document.getElementById('imageInput').value = '';
+      document.getElementById('imgPreview').src = '';
+      document.getElementById('imgPreviewContainer').style.display = 'none';
+    }
+
+    /* 상세보기 모달 */
     function openDetailModal(index) {
       const log = logs[index];
       const isSucc = log.isSuccess === '성공';
@@ -438,16 +549,10 @@
     function setRating(type, val) {
       if (type === 'star') {
         currentStarRating = val;
-        const stars = document.querySelectorAll('#starRating i');
-        stars.forEach((s, idx) => {
-          s.classList.toggle('active', idx < val);
-        });
+        document.querySelectorAll('#starRating i').forEach((s, idx) => s.classList.toggle('active', idx < val));
       } else {
         currentLockRating = val;
-        const locks = document.querySelectorAll('#lockRating i');
-        locks.forEach((l, idx) => {
-          l.classList.toggle('active', idx < val);
-        });
+        document.querySelectorAll('#lockRating i').forEach((l, idx) => l.classList.toggle('active', idx < val));
       }
     }
 
@@ -485,45 +590,6 @@
         btnS.className = 'radio-btn';
         btnF.className = 'radio-btn active-fail';
       }
-    }
-
-    function handleImageUpload(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        const img = new Image();
-        img.onload = function() {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          const maxW = 600; // 저장 용량 경량화
-
-          if (width > maxW) {
-            height = Math.round((height * maxW) / width);
-            width = maxW;
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-
-          currentBase64Image = canvas.toDataURL('image/jpeg', 0.6);
-          document.getElementById('imgPreview').src = currentBase64Image;
-          document.getElementById('imgPreviewContainer').style.display = 'block';
-        };
-        img.src = evt.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function removeImage() {
-      currentBase64Image = '';
-      document.getElementById('imageInput').value = '';
-      document.getElementById('imgPreview').src = '';
-      document.getElementById('imgPreviewContainer').style.display = 'none';
     }
 
     function saveLog(e) {
