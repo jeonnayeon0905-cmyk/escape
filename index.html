@@ -5,16 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>방탈출 로그북</title>
 
-  <!-- 웹앱 매니페스트 및 파비콘/홈화면 아이콘 설정 -->
   <link rel="manifest" href="./manifest.json">
   <link rel="apple-touch-icon" href="./icon.png">
   <link rel="icon" type="image/png" sizes="192x192" href="./icon.png">
   <meta name="theme-color" content="#0f172a">
 
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-  <!-- Cropper.js (사진 자르기 라이브러리) -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  
   <style>
     :root {
       --bg-color: #0f172a;
@@ -31,8 +30,13 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-main); padding: 16px; max-width: 800px; margin: 0 auto; padding-bottom: 60px; }
-    header { text-align: center; margin-bottom: 16px; }
-    header h1 { font-size: 1.6rem; font-weight: 800; background: linear-gradient(135deg, #a855f7, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--card-border); padding-bottom: 12px; }
+    header h1 { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, #a855f7, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    
+    .user-profile { display: flex; align-items: center; gap: 8px; }
+    .user-profile img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+    .btn-auth { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--card-border); color: var(--text-main); padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 6px; }
 
     /* 대시보드 */
     .dashboard-compact { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
@@ -40,7 +44,6 @@
     .dash-val { font-size: 1.3rem; font-weight: 800; margin-top: 2px; }
     .dash-lbl { font-size: 0.78rem; color: var(--text-sub); }
 
-    /* 컨트롤 바 및 백업 버튼 */
     .control-bar { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
     .action-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
     .backup-row { display: flex; gap: 8px; }
@@ -49,7 +52,7 @@
     .btn-backup { background-color: var(--card-bg); color: var(--text-main); border: 1px solid var(--card-border); padding: 8px 12px; border-radius: 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; flex: 1; justify-content: center; }
     .sort-select { background-color: var(--card-bg); color: var(--text-main); border: 1px solid var(--card-border); padding: 11px 14px; border-radius: 12px; font-size: 0.88rem; outline: none; }
 
-    /* 일반 카드 목록 */
+    /* 카드 */
     .logs-grid { display: flex; flex-direction: column; gap: 14px; }
     .log-card { background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 16px; cursor: pointer; }
     .log-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
@@ -68,7 +71,7 @@
     .card-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
     .btn-sm-icon { background: none; border: none; color: var(--text-sub); font-size: 0.82rem; cursor: pointer; padding: 4px 8px; }
 
-    /* 카페별 아코디언 스타일 */
+    /* 아코디언 */
     .cafe-accordion { display: flex; flex-direction: column; gap: 10px; }
     .cafe-group { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; overflow: hidden; }
     .cafe-header { padding: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: rgba(255,255,255,0.02); }
@@ -106,7 +109,6 @@
     .img-preview-container img { width: 100%; max-height: 220px; object-fit: cover; border-radius: 10px; }
     .btn-remove-img { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; }
 
-    /* 자르기(Cropper) 모달 전용 */
     .crop-container { width: 100%; max-height: 350px; background: #000; overflow: hidden; border-radius: 10px; }
     .crop-container img { max-width: 100%; }
 
@@ -114,54 +116,77 @@
     .btn-secondary { background: #334155; color: white; border: none; padding: 12px; border-radius: 10px; flex: 1; cursor: pointer; font-weight: 600; }
     .detail-img { width: 100%; max-height: 280px; object-fit: cover; border-radius: 12px; margin-bottom: 14px; }
     .detail-memo { background: #0f172a; padding: 14px; border-radius: 10px; font-size: 0.92rem; line-height: 1.5; color: var(--text-main); white-space: pre-wrap; margin-top: 12px; }
+
+    /* 로그인 안내 전용 카드 */
+    .login-banner { background: var(--card-bg); border: 1px dashed var(--primary); border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 20px; }
+    .login-banner h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    .login-banner p { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 16px; }
+    
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
   <header>
     <h1>방탈출 로그북</h1>
+    <div class="user-profile">
+      <div id="userInfo" class="user-profile hidden">
+        <img id="userImg" src="" alt="프로필">
+        <span id="userName" style="font-size: 0.82rem; font-weight: 600;"></span>
+        <button class="btn-auth" onclick="handleSignOut()"><i class="fa-solid fa-right-from-bracket"></i></button>
+      </div>
+      <button id="btnLogin" class="btn-auth" onclick="handleSignIn()"><i class="fa-brands fa-google"></i> 구글 로그인</button>
+    </div>
   </header>
 
-  <div class="dashboard-compact">
-    <div class="dash-card">
-      <div class="dash-lbl">누적 기록</div>
-      <div class="dash-val" id="totalCount" style="color: var(--primary);">0방</div>
-    </div>
-    <div class="dash-card">
-      <div class="dash-lbl">성공 / 실패</div>
-      <div class="dash-val">
-        <span id="successCount" style="color: var(--success);">0</span> / <span id="failCount" style="color: var(--fail);">0</span>
+  <div id="loginNotice" class="login-banner">
+    <h3>구글 로그인이 필요합니다</h3>
+    <p>로그인 시 앱 삭제나 스마트폰 변경에도 내 기록이 구글 클라우드에 영구적으로 안전하게 보관됩니다.</p>
+    <button class="btn-primary" style="margin: 0 auto; max-width: 220px;" onclick="handleSignIn()">
+      <i class="fa-brands fa-google"></i> Google 계정으로 로그인
+    </button>
+  </div>
+
+  <div id="mainAppArea" class="hidden">
+    <div class="dashboard-compact">
+      <div class="dash-card">
+        <div class="dash-lbl">누적 기록</div>
+        <div class="dash-val" id="totalCount" style="color: var(--primary);">0방</div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-lbl">성공 / 실패</div>
+        <div class="dash-val">
+          <span id="successCount" style="color: var(--success);">0</span> / <span id="failCount" style="color: var(--fail);">0</span>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="control-bar">
-    <div class="action-row">
-      <button class="btn-primary" onclick="openFormModal()">
-        <i class="fa-solid fa-plus"></i> 새로운 탈출 기록
-      </button>
-      <select class="sort-select" id="sortSelect" onchange="renderLogs()">
-        <option value="latest">⏱️ 최신순</option>
-        <option value="oldest">⏳ 오래된 순</option>
-        <option value="cafe">🏢 카페별 모아보기</option>
-      </select>
+    <div class="control-bar">
+      <div class="action-row">
+        <button class="btn-primary" onclick="openFormModal()">
+          <i class="fa-solid fa-plus"></i> 새로운 탈출 기록
+        </button>
+        <select class="sort-select" id="sortSelect" onchange="renderLogs()">
+          <option value="latest">⏱️ 최신순</option>
+          <option value="oldest">⏳ 오래된 순</option>
+          <option value="cafe">🏢 카페별 모아보기</option>
+        </select>
+      </div>
+
+      <div class="backup-row">
+        <button class="btn-backup" onclick="exportData()">
+          <i class="fa-solid fa-download"></i> 백업 파일 받기
+        </button>
+        <button class="btn-backup" onclick="document.getElementById('importFileInput').click()">
+          <i class="fa-solid fa-upload"></i> 파일 복구하기
+        </button>
+        <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importData(event)">
+      </div>
     </div>
 
-    <!-- 백업 및 복구 버튼 -->
-    <div class="backup-row">
-      <button class="btn-backup" onclick="exportData()">
-        <i class="fa-solid fa-download"></i> 데이터 백업 (파일 저장)
-      </button>
-      <button class="btn-backup" onclick="document.getElementById('importFileInput').click()">
-        <i class="fa-solid fa-upload"></i> 데이터 복구 (불러오기)
-      </button>
-      <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importData(event)">
-    </div>
+    <div class="logs-grid" id="logsGrid"></div>
   </div>
 
-  <div class="logs-grid" id="logsGrid"></div>
-
-  <!-- 이미지 자르기(Crop) 모달 -->
   <div class="modal-overlay" id="cropModal" style="z-index: 1100;">
     <div class="modal-content">
       <div class="modal-header">
@@ -178,7 +203,6 @@
     </div>
   </div>
 
-  <!-- 작성 / 수정 모달 -->
   <div class="modal-overlay" id="formModal">
     <div class="modal-content">
       <div class="modal-header">
@@ -187,7 +211,7 @@
       </div>
 
       <form id="logForm" onsubmit="saveLog(event)">
-        <input type="hidden" id="editIndex" value="-1">
+        <input type="hidden" id="editDocId" value="">
 
         <div class="form-group">
           <label>인증샷 / 보드판 사진</label>
@@ -289,13 +313,12 @@
 
         <div class="modal-footer">
           <button type="button" class="btn-secondary" onclick="closeFormModal()">취소</button>
-          <button type="submit" class="btn-primary">저장하기</button>
+          <button type="submit" class="btn-primary">클라우드에 저장</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- 상세보기 모달 -->
   <div class="modal-overlay" id="detailModal">
     <div class="modal-content">
       <div class="modal-header">
@@ -327,32 +350,150 @@
     </div>
   </div>
 
-  <script>
-    function getStoredLogs() {
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { 
+      getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // 🔴 본인의 Firebase 콘솔 설정값을 입력하세요!
+    const firebaseConfig = {{
+    apiKey: "AIzaSyCQU0EEsfxFUz7HkZiHkO5Dbhr1IXsrOn4",
+    authDomain: "roomescape-log.firebaseapp.com",
+    projectId: "roomescape-log",
+    storageBucket: "roomescape-log.firebasestorage.app",
+    messagingSenderId: "457770219847",
+    appId: "1:457770219847:web:7f0454cd0e232eb6c3b462"
+  };
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    let currentUser = null;
+    let logs = [];
+    let unsubscribe = null;
+
+    window.handleSignIn = async function() {
       try {
-        const stored = localStorage.getItem('escapeLogs');
-        return stored ? JSON.parse(stored) : [];
-      } catch (e) {
-        return [];
+        await signInWithPopup(auth, provider);
+      } catch (err) {
+        alert("로그인 중 오류가 발생했습니다: " + err.message);
       }
+    };
+
+    window.handleSignOut = function() {
+      if (confirm("로그아웃 하시겠습니까?")) {
+        signOut(auth);
+      }
+    };
+
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      const loginBanner = document.getElementById('loginNotice');
+      const mainArea = document.getElementById('mainAppArea');
+      const btnLogin = document.getElementById('btnLogin');
+      const userInfo = document.getElementById('userInfo');
+
+      if (user) {
+        loginBanner.classList.add('hidden');
+        mainArea.classList.remove('hidden');
+        btnLogin.classList.add('hidden');
+        userInfo.classList.remove('hidden');
+
+        document.getElementById('userName').innerText = user.displayName || '사용자';
+        document.getElementById('userImg').src = user.photoURL || 'https://via.placeholder.com/32';
+
+        listenToLogs(user.uid);
+      } else {
+        loginBanner.classList.remove('hidden');
+        mainArea.classList.add('hidden');
+        btnLogin.classList.remove('hidden');
+        userInfo.classList.add('hidden');
+
+        logs = [];
+        if (unsubscribe) unsubscribe();
+        renderLogs();
+      }
+    });
+
+    function listenToLogs(userId) {
+      const q = query(
+        collection(db, 'users', userId, 'records'),
+        orderBy('playDate', 'desc')
+      );
+
+      unsubscribe = onSnapshot(q, (snapshot) => {
+        logs = snapshot.docs.map(docSnap => ({
+          docId: docSnap.id,
+          ...docSnap.data()
+        }));
+        renderLogs();
+      });
     }
 
-    let logs = getStoredLogs();
+    window.saveLogToFirestore = async function(logData, docId) {
+      if (!currentUser) return;
+      try {
+        if (docId) {
+          await updateDoc(doc(db, 'users', currentUser.uid, 'records', docId), logData);
+        } else {
+          await addDoc(collection(db, 'users', currentUser.uid, 'records'), logData);
+        }
+        closeFormModal();
+      } catch (e) {
+        alert("구글 서버 저장 실패: " + e.message);
+      }
+    };
+
+    window.deleteLogFromFirestore = async function(docId) {
+      if (!currentUser) return;
+      if (confirm('이 기록을 삭제하시겠습니까?')) {
+        try {
+          await deleteDoc(doc(db, 'users', currentUser.uid, 'records', docId));
+        } catch (e) {
+          alert("삭제 실패: " + e.message);
+        }
+      }
+    };
+
+    window.importBatchData = async function(importedArray) {
+      if (!currentUser) return;
+      try {
+        const batch = writeBatch(db);
+        importedArray.forEach(item => {
+          const newRef = doc(collection(db, 'users', currentUser.uid, 'records'));
+          batch.set(newRef, item);
+        });
+        await batch.commit();
+        alert("백업 파일의 기록이 성공적으로 구글 클라우드에 불러와졌습니다!");
+      } catch (e) {
+        alert("데이터 복구 중 오류 발생: " + e.message);
+      }
+    };
+
+    window.getLogsList = function() { return logs; };
+  </script>
+
+  <script>
     let selectedFormGenres = [];
     let currentBase64Image = '';
     let currentStarRating = 0;
     let currentLockRating = 0;
     let cropper = null;
 
-    function saveLogsToStorage() {
-      try {
-        localStorage.setItem('escapeLogs', JSON.stringify(logs));
-      } catch (e) {
-        alert("저장 용량이 부족합니다. 이미지 크기를 줄이거나 기존 기록을 확인해보세요.");
-      }
-    }
-
-    function updateStats() {
+    function updateStats(logs) {
       const total = logs.length;
       const success = logs.filter(l => l.isSuccess === '성공').length;
       const fail = total - success;
@@ -365,401 +506,16 @@
     function escapeHtml(str) {
       if (!str) return '';
       return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
     function renderLogs() {
-      updateStats();
+      const logs = window.getLogsList ? window.getLogsList() : [];
+      updateStats(logs);
+
       const grid = document.getElementById('logsGrid');
       const sortType = document.getElementById('sortSelect').value;
 
       if (logs.length === 0) {
-        grid.innerHTML = '<div style="text-align:center; color: var(--text-sub); padding: 50px 0;">등록된 기록이 없습니다.<br>버튼을 눌러 새로운 탈출 기록을 입력해보세요!</div>';
-        return;
-      }
-
-      if (sortType === 'cafe') {
-        const cafeMap = {};
-        logs.forEach((log, index) => {
-          const cafe = log.cafeName.trim() || '기타 매장';
-          if (!cafeMap[cafe]) cafeMap[cafe] = [];
-          cafeMap[cafe].push({ ...log, originalIndex: index });
-        });
-
-        let cafeHtml = '<div class="cafe-accordion">';
-        for (const cafe in cafeMap) {
-          const cafeLogs = cafeMap[cafe];
-          const succCount = cafeLogs.filter(l => l.isSuccess === '성공').length;
-          
-          cafeHtml += `
-            <div class="cafe-group">
-              <div class="cafe-header" onclick="this.parentElement.classList.toggle('open')">
-                <div>
-                  <div class="cafe-name">🏢 ${escapeHtml(cafe)}</div>
-                  <div class="cafe-stats">방문 횟수: ${cafeLogs.length}회 | 성공: ${succCount}회</div>
-                </div>
-                <i class="fa-solid fa-chevron-down" style="color: var(--text-sub);"></i>
-              </div>
-              <div class="cafe-body">
-                ${cafeLogs.map(log => renderSingleCardHtml(log)).join('')}
-              </div>
-            </div>
-          `;
-        }
-        cafeHtml += '</div>';
-        grid.innerHTML = cafeHtml;
-        return;
-      }
-
-      let filtered = logs.map((log, index) => ({ ...log, originalIndex: index }));
-      filtered.sort((a, b) => {
-        const dateA = new Date(a.playDate || 0);
-        const dateB = new Date(b.playDate || 0);
-        return sortType === 'latest' ? dateB - dateA : dateA - dateB;
-      });
-
-      grid.innerHTML = filtered.map(log => renderSingleCardHtml(log)).join('');
-    }
-
-    function renderSingleCardHtml(log) {
-      const isSucc = log.isSuccess === '성공';
-      const genreTags = (log.genres || []).map(g => `<span class="genre-tag">${escapeHtml(g)}</span>`).join('');
-      
-      let starsHtml = log.starRating ? `<span style="color:var(--accent);">★ ${log.starRating}</span>` : '';
-      let locksHtml = log.lockRating ? `<span style="color:#38bdf8;">🔒 ${log.lockRating}</span>` : '';
-
-      return `
-        <div class="log-card" onclick="openDetailModal(${log.originalIndex})">
-          <div class="log-top">
-            <div>
-              <div class="log-title">${escapeHtml(log.themeName)}</div>
-              <div class="log-cafe">${escapeHtml(log.cafeName)}</div>
-            </div>
-            <span class="badge ${isSucc ? 'badge-success' : 'badge-fail'}">
-              ${isSucc ? '성공' : '실패'}
-            </span>
-          </div>
-
-          ${(starsHtml || locksHtml) ? `<div class="ratings-row">${starsHtml} ${locksHtml}</div>` : ''}
-          ${genreTags ? `<div class="genre-badges">${genreTags}</div>` : ''}
-
-          <div class="log-details">
-            <div>날짜: <span>${log.playDate || '-'}</span></div>
-            <div>남은 시간: <span>${escapeHtml(log.timeLeft) || '-'}</span></div>
-          </div>
-
-          ${log.image ? `<img src="${log.image}" class="thumb-preview" alt="인증샷">` : ''}
-
-          <div class="card-actions" onclick="event.stopPropagation()">
-            <button class="btn-sm-icon" onclick="editLog(${log.originalIndex})"><i class="fa-solid fa-pen-to-square"></i> 수정</button>
-            <button class="btn-sm-icon" onclick="deleteLog(${log.originalIndex})" style="color: var(--fail);"><i class="fa-solid fa-trash"></i> 삭제</button>
-          </div>
-        </div>
-      `;
-    }
-
-    /* 백업 및 복구 기능 */
-    function exportData() {
-      if (logs.length === 0) {
-        alert("백업할 기록 데이터가 없습니다.");
-        return;
-      }
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(logs, null, 2));
-      const downloadAnchor = document.createElement('a');
-      const today = new Date().toISOString().slice(0, 10);
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `escape_log_backup_${today}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-    }
-
-    function importData(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        try {
-          const imported = JSON.parse(evt.target.result);
-          if (Array.isArray(imported)) {
-            if (confirm(`기존 데이터를 덮어쓰고 ${imported.length}개의 백업 기록을 불러오시겠습니까?`)) {
-              logs = imported;
-              saveLogsToStorage();
-              renderLogs();
-              alert("백업 데이터가 성공적으로 복구되었습니다!");
-            }
-          } else {
-            alert("올바르지 않은 백업 파일 형식입니다.");
-          }
-        } catch (err) {
-          alert("파일을 읽는 도중 오류가 발생했습니다.");
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    /* 이미지 크롭(Cropper) 관련 기능 */
-    function handleImageSelect(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        document.getElementById('cropImageSrc').src = evt.target.result;
-        document.getElementById('cropModal').style.display = 'flex';
-
-        if (cropper) cropper.destroy();
-        const image = document.getElementById('cropImageSrc');
-        cropper = new Cropper(image, {
-          aspectRatio: 16 / 9,
-          viewMode: 1
-        });
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function applyCrop() {
-      if (!cropper) return;
-      const canvas = cropper.getCroppedCanvas({
-        width: 800,
-        height: 450
-      });
-      currentBase64Image = canvas.toDataURL('image/jpeg', 0.7);
-      document.getElementById('imgPreview').src = currentBase64Image;
-      document.getElementById('imgPreviewContainer').style.display = 'block';
-      closeCropModal();
-    }
-
-    function closeCropModal() {
-      document.getElementById('cropModal').style.display = 'none';
-      if (cropper) cropper.destroy();
-    }
-
-    function removeImage() {
-      currentBase64Image = '';
-      document.getElementById('imageInput').value = '';
-      document.getElementById('imgPreview').src = '';
-      document.getElementById('imgPreviewContainer').style.display = 'none';
-    }
-
-    /* 상세보기 모달 */
-    function openDetailModal(index) {
-      const log = logs[index];
-      const isSucc = log.isSuccess === '성공';
-
-      const badgeEl = document.getElementById('detailBadge');
-      badgeEl.className = `badge ${isSucc ? 'badge-success' : 'badge-fail'}`;
-      badgeEl.innerText = isSucc ? '성공' : '실패';
-
-      document.getElementById('detailTitle').innerText = log.themeName;
-      document.getElementById('detailCafe').innerText = log.cafeName;
-      document.getElementById('detailDate').innerText = log.playDate || '-';
-      document.getElementById('detailTime').innerText = log.timeLeft || '-';
-      document.getElementById('detailHint').innerText = log.hintCount || '-';
-      document.getElementById('detailParty').innerText = log.partyMembers || '-';
-
-      const imgArea = document.getElementById('detailImageArea');
-      imgArea.innerHTML = log.image ? `<img src="${log.image}" class="detail-img" alt="인증샷">` : '';
-
-      const ratingsArea = document.getElementById('detailRatings');
-      let rHtml = '';
-      if (log.starRating) rHtml += `<span>★ 만족도: ${log.starRating}점</span> `;
-      if (log.lockRating) rHtml += `<span style="color:#38bdf8; margin-left:8px;">🔒 난이도: ${log.lockRating}단계</span>`;
-      ratingsArea.innerHTML = rHtml;
-
-      const genresArea = document.getElementById('detailGenres');
-      genresArea.innerHTML = (log.genres || []).map(g => `<span class="genre-tag">${escapeHtml(g)}</span>`).join('');
-
-      const memoEl = document.getElementById('detailMemo');
-      if (log.memo && log.memo.trim() !== '') {
-        memoEl.style.display = 'block';
-        memoEl.innerText = log.memo;
-      } else {
-        memoEl.style.display = 'none';
-        memoEl.innerText = '';
-      }
-
-      document.getElementById('detailEditBtn').onclick = function() {
-        closeDetailModal();
-        editLog(index);
-      };
-
-      document.getElementById('detailModal').style.display = 'flex';
-    }
-
-    function closeDetailModal() {
-      document.getElementById('detailModal').style.display = 'none';
-    }
-
-    function openFormModal() {
-      document.getElementById('editIndex').value = '-1';
-      document.getElementById('logForm').reset();
-      document.getElementById('playDate').valueAsDate = new Date();
-      selectedFormGenres = [];
-      document.querySelectorAll('#modalGenreChips .genre-chip').forEach(c => c.classList.remove('selected'));
-      document.getElementById('etcGenreInput').style.display = 'none';
-      setRating('star', 0);
-      setRating('lock', 0);
-      removeImage();
-      setResult('성공');
-      document.getElementById('formModalTitle').innerText = '새 기록 작성';
-      document.getElementById('formModal').style.display = 'flex';
-    }
-
-    function closeFormModal() {
-      document.getElementById('formModal').style.display = 'none';
-    }
-
-    function setRating(type, val) {
-      if (type === 'star') {
-        currentStarRating = val;
-        document.querySelectorAll('#starRating i').forEach((s, idx) => s.classList.toggle('active', idx < val));
-      } else {
-        currentLockRating = val;
-        document.querySelectorAll('#lockRating i').forEach((l, idx) => l.classList.toggle('active', idx < val));
-      }
-    }
-
-    function toggleFormGenre(genre, el) {
-      if (genre === '기타') {
-        const input = document.getElementById('etcGenreInput');
-        if (el.classList.contains('selected')) {
-          el.classList.remove('selected');
-          input.style.display = 'none';
-        } else {
-          el.classList.add('selected');
-          input.style.display = 'block';
-        }
-        return;
-      }
-
-      if (selectedFormGenres.includes(genre)) {
-        selectedFormGenres = selectedFormGenres.filter(g => g !== genre);
-        el.classList.remove('selected');
-      } else {
-        selectedFormGenres.push(genre);
-        el.classList.add('selected');
-      }
-    }
-
-    function setResult(val) {
-      document.getElementById('isSuccess').value = val;
-      const btnS = document.getElementById('btnSuccess');
-      const btnF = document.getElementById('btnFail');
-
-      if (val === '성공') {
-        btnS.className = 'radio-btn active-success';
-        btnF.className = 'radio-btn';
-      } else {
-        btnS.className = 'radio-btn';
-        btnF.className = 'radio-btn active-fail';
-      }
-    }
-
-    function saveLog(e) {
-      e.preventDefault();
-      const index = parseInt(document.getElementById('editIndex').value);
-
-      let finalGenres = [...selectedFormGenres];
-      const etcChip = document.getElementById('etcChip');
-      if (etcChip.classList.contains('selected')) {
-        const etcVal = document.getElementById('etcGenreInput').value.trim();
-        if (etcVal) finalGenres.push(etcVal);
-      }
-
-      const logData = {
-        themeName: document.getElementById('themeName').value,
-        cafeName: document.getElementById('cafeName').value,
-        playDate: document.getElementById('playDate').value,
-        isSuccess: document.getElementById('isSuccess').value,
-        starRating: currentStarRating,
-        lockRating: currentLockRating,
-        genres: finalGenres,
-        timeLeft: document.getElementById('timeLeft').value,
-        hintCount: document.getElementById('hintCount').value,
-        partyMembers: document.getElementById('partyMembers').value,
-        image: currentBase64Image,
-        memo: document.getElementById('memo').value
-      };
-
-      if (index === -1) {
-        logs.push(logData);
-      } else {
-        logs[index] = logData;
-      }
-
-      saveLogsToStorage();
-      closeFormModal();
-      renderLogs();
-    }
-
-    function editLog(index) {
-      const log = logs[index];
-      document.getElementById('editIndex').value = index;
-      document.getElementById('themeName').value = log.themeName;
-      document.getElementById('cafeName').value = log.cafeName;
-      document.getElementById('playDate').value = log.playDate;
-      document.getElementById('timeLeft').value = log.timeLeft || '';
-      document.getElementById('hintCount').value = log.hintCount || '';
-      document.getElementById('partyMembers').value = log.partyMembers || '';
-      document.getElementById('memo').value = log.memo || '';
-      setResult(log.isSuccess);
-      setRating('star', log.starRating || 0);
-      setRating('lock', log.lockRating || 0);
-
-      selectedFormGenres = [];
-      const etcInput = document.getElementById('etcGenreInput');
-      const etcChip = document.getElementById('etcChip');
-      etcInput.style.display = 'none';
-      etcChip.classList.remove('selected');
-
-      const defaultGenres = ['공포/스릴러', '추리/미스터리', '감성/드라마', 'SF/판타지', '모험/코믹', '잠입/액션', '???'];
-
-      (log.genres || []).forEach(g => {
-        if (defaultGenres.includes(g)) {
-          selectedFormGenres.push(g);
-        } else {
-          etcChip.classList.add('selected');
-          etcInput.style.display = 'block';
-          etcInput.value = g;
-        }
-      });
-
-      document.querySelectorAll('#modalGenreChips .genre-chip').forEach(chip => {
-        if (selectedFormGenres.includes(chip.innerText)) {
-          chip.classList.add('selected');
-        } else if (chip.innerText !== '기타') {
-          chip.classList.remove('selected');
-        }
-      });
-
-      if (log.image) {
-        currentBase64Image = log.image;
-        document.getElementById('imgPreview').src = log.image;
-        document.getElementById('imgPreviewContainer').style.display = 'block';
-      } else {
-        removeImage();
-      }
-
-      document.getElementById('formModalTitle').innerText = '기록 수정';
-      document.getElementById('formModal').style.display = 'flex';
-    }
-
-    function deleteLog(index) {
-      if (confirm('이 기록을 삭제하시겠습니까?')) {
-        logs.splice(index, 1);
-        saveLogsToStorage();
-        renderLogs();
-      }
-    }
-
-    // 초기 실행
-    renderLogs();
-  </script>
-</body>
-</html>
+        grid.innerHTML = '<div style="text-align:center;
