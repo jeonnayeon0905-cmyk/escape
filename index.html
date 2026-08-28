@@ -359,15 +359,15 @@
       getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // 🔴 본인의 Firebase 콘솔 설정값을 입력하세요!
     const firebaseConfig = {
-    apiKey: "AIzaSyCQU0EEsfxFUz7HkZiHkO5Dbhr1IXsrOn4",
-    authDomain: "jeonnayeon0905-cmyk.firebaseapp.com",
-    projectId: "roomescape-log",
-    storageBucket: "roomescape-log.firebasestorage.app",
-    messagingSenderId: "457770219847",
-    appId: "1:457770219847:web:7f0454cd0e232eb6c3b462"
-  };
+      apiKey: "AIzaSyCQU0EEsfxFUz7HkZiHkO5Dbhr1IXsrOn4",
+      authDomain: "jeonnayeon0905-cmyk.firebaseapp.com",
+      projectId: "roomescape-log",
+      storageBucket: "roomescape-log.firebasestorage.app",
+      messagingSenderId: "457770219847",
+      appId: "1:457770219847:web:7f0454cd0e232eb6c3b462"
+    };
+
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
@@ -510,4 +510,366 @@
       const sortType = document.getElementById('sortSelect').value;
 
       if (logs.length === 0) {
-        grid.innerHTML = '<div style="text-align:center;
+        grid.innerHTML = '<div style="text-align:center; padding: 40px 0; color: var(--text-sub);">아직 저장된 기록이 없습니다.<br>새로운 탈출 기록을 입력해 보세요!</div>';
+        return;
+      }
+
+      let sorted = [...logs];
+      if (sortType === 'latest') {
+        sorted.sort((a, b) => new Date(b.playDate) - new Date(a.playDate));
+      } else if (sortType === 'oldest') {
+        sorted.sort((a, b) => new Date(a.playDate) - new Date(b.playDate));
+      }
+
+      if (sortType === 'cafe') {
+        renderCafeGroupedLogs(sorted, grid);
+      } else {
+        grid.className = 'logs-grid';
+        grid.innerHTML = sorted.map(log => createLogCardHtml(log)).join('');
+      }
+    }
+
+    function createLogCardHtml(log) {
+      const stars = '★'.repeat(log.starRating || 0) + '☆'.repeat(5 - (log.starRating || 0));
+      const locks = '🔒'.repeat(log.lockRating || 0);
+      const isSuccess = log.isSuccess === '성공';
+      const badgeClass = isSuccess ? 'badge-success' : 'badge-fail';
+      
+      const genresHtml = (log.genres || []).map(g => `<span class="genre-tag">${escapeHtml(g)}</span>`).join('');
+
+      return `
+        <div class="log-card" onclick="openDetailModal('${log.docId}')">
+          <div class="log-top">
+            <div>
+              <div class="log-title">${escapeHtml(log.themeName)}</div>
+              <div class="log-cafe">${escapeHtml(log.cafeName)}</div>
+            </div>
+            <span class="badge ${badgeClass}">${escapeHtml(log.isSuccess)}</span>
+          </div>
+          
+          <div class="ratings-row">
+            <span>${stars}</span>
+            <span>${locks}</span>
+          </div>
+
+          ${genresHtml ? `<div class="genre-badges">${genresHtml}</div>` : ''}
+
+          <div class="log-details">
+            <div>날짜: ${escapeHtml(log.playDate)}</div>
+            <div>남은시간: ${escapeHtml(log.timeLeft || '-')}</div>
+            <div>힌트: ${escapeHtml(log.hintCount || '-')}</div>
+            <div>동행: ${escapeHtml(log.partyMembers || '-')}</div>
+          </div>
+
+          ${log.image ? `<img src="${log.image}" class="thumb-preview">` : ''}
+
+          <div class="card-actions">
+            <button class="btn-sm-icon" onclick="event.stopPropagation(); deleteLogFromFirestore('${log.docId}')"><i class="fa-solid fa-trash"></i> 삭제</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCafeGroupedLogs(logs, container) {
+      const groups = {};
+      logs.forEach(log => {
+        const cafe = log.cafeName || '미지정';
+        if (!groups[cafe]) groups[cafe] = [];
+        groups[cafe].push(log);
+      });
+
+      container.className = 'cafe-accordion';
+      container.innerHTML = Object.keys(groups).map((cafe, idx) => {
+        const groupLogs = groups[cafe];
+        const succCount = groupLogs.filter(l => l.isSuccess === '성공').length;
+        const cardsHtml = groupLogs.map(l => createLogCardHtml(l)).join('');
+
+        return `
+          <div class="cafe-group" id="cafeGroup-${idx}">
+            <div class="cafe-header" onclick="toggleCafeGroup(${idx})">
+              <div>
+                <div class="cafe-name">${escapeHtml(cafe)}</div>
+                <div class="cafe-stats">총 ${groupLogs.length}회 방문 (성공 ${succCount}회)</div>
+              </div>
+              <i class="fa-solid fa-chevron-down" style="color: var(--text-sub);"></i>
+            </div>
+            <div class="cafe-body">
+              ${cardsHtml}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleCafeGroup(idx) {
+      const el = document.getElementById(`cafeGroup-${idx}`);
+      if (el) el.classList.toggle('open');
+    }
+
+    function setResult(val) {
+      document.getElementById('isSuccess').value = val;
+      const btnS = document.getElementById('btnSuccess');
+      const btnF = document.getElementById('btnFail');
+      if (val === '성공') {
+        btnS.className = 'radio-btn active-success';
+        btnF.className = 'radio-btn';
+      } else {
+        btnS.className = 'radio-btn';
+        btnF.className = 'radio-btn active-fail';
+      }
+    }
+
+    function setRating(type, val) {
+      if (type === 'star') {
+        currentStarRating = val;
+        const stars = document.querySelectorAll('#starRating i');
+        stars.forEach((s, idx) => {
+          s.className = idx < val ? 'fa-solid fa-star active' : 'fa-solid fa-star';
+        });
+      } else {
+        currentLockRating = val;
+        const locks = document.querySelectorAll('#lockRating i');
+        locks.forEach((l, idx) => {
+          l.className = idx < val ? 'fa-solid fa-lock active' : 'fa-solid fa-lock';
+        });
+      }
+    }
+
+    function toggleFormGenre(genre, el) {
+      if (genre === '기타') {
+        const etcInput = document.getElementById('etcGenreInput');
+        if (el.classList.contains('selected')) {
+          el.classList.remove('selected');
+          etcInput.style.display = 'none';
+          etcInput.value = '';
+        } else {
+          el.classList.add('selected');
+          etcInput.style.display = 'block';
+        }
+        return;
+      }
+
+      if (selectedFormGenres.includes(genre)) {
+        selectedFormGenres = selectedFormGenres.filter(g => g !== genre);
+        el.classList.remove('selected');
+      } else {
+        selectedFormGenres.push(genre);
+        el.classList.add('selected');
+      }
+    }
+
+    function handleImageSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        document.getElementById('cropImageSrc').src = evt.target.result;
+        document.getElementById('cropModal').style.display = 'flex';
+        
+        if (cropper) cropper.destroy();
+        const image = document.getElementById('cropImageSrc');
+        cropper = new Cropper(image, {
+          aspectRatio: NaN,
+          viewMode: 1
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function applyCrop() {
+      if (!cropper) return;
+      const canvas = cropper.getCroppedCanvas({ maxWidth: 800, maxHeight: 800 });
+      currentBase64Image = canvas.toDataURL('image/jpeg', 0.7);
+      
+      document.getElementById('imgPreview').src = currentBase64Image;
+      document.getElementById('imgPreviewContainer').style.display = 'block';
+      closeCropModal();
+    }
+
+    function closeCropModal() {
+      document.getElementById('cropModal').style.display = 'none';
+      if (cropper) cropper.destroy();
+      document.getElementById('imageInput').value = '';
+    }
+
+    function removeImage() {
+      currentBase64Image = '';
+      document.getElementById('imgPreview').src = '';
+      document.getElementById('imgPreviewContainer').style.display = 'none';
+    }
+
+    function openFormModal(docId = null) {
+      const modal = document.getElementById('formModal');
+      document.getElementById('logForm').reset();
+      selectedFormGenres = [];
+      currentBase64Image = '';
+      setRating('star', 0);
+      setRating('lock', 0);
+      setResult('성공');
+      removeImage();
+
+      document.querySelectorAll('.genre-chip').forEach(c => c.classList.remove('selected'));
+      document.getElementById('etcGenreInput').style.display = 'none';
+
+      if (docId) {
+        document.getElementById('formModalTitle').innerText = '기록 수정';
+        document.getElementById('editDocId').value = docId;
+        const logs = window.getLogsList();
+        const item = logs.find(l => l.docId === docId);
+        if (item) {
+          document.getElementById('themeName').value = item.themeName || '';
+          document.getElementById('cafeName').value = item.cafeName || '';
+          document.getElementById('playDate').value = item.playDate || '';
+          document.getElementById('timeLeft').value = item.timeLeft || '';
+          document.getElementById('hintCount').value = item.hintCount || '';
+          document.getElementById('partyMembers').value = item.partyMembers || '';
+          document.getElementById('memo').value = item.memo || '';
+          setResult(item.isSuccess || '성공');
+          setRating('star', item.starRating || 0);
+          setRating('lock', item.lockRating || 0);
+
+          if (item.image) {
+            currentBase64Image = item.image;
+            document.getElementById('imgPreview').src = item.image;
+            document.getElementById('imgPreviewContainer').style.display = 'block';
+          }
+
+          (item.genres || []).forEach(g => {
+            const chips = document.querySelectorAll('.genre-chip');
+            let matched = false;
+            chips.forEach(c => {
+              if (c.innerText === g) {
+                c.classList.add('selected');
+                selectedFormGenres.push(g);
+                matched = true;
+              }
+            });
+            if (!matched) {
+              const etcChip = document.getElementById('etcChip');
+              etcChip.classList.add('selected');
+              document.getElementById('etcGenreInput').style.display = 'block';
+              document.getElementById('etcGenreInput').value = g;
+            }
+          });
+        }
+      } else {
+        document.getElementById('formModalTitle').innerText = '새 기록 작성';
+        document.getElementById('editDocId').value = '';
+        document.getElementById('playDate').value = new Date().toISOString().substring(0, 10);
+      }
+
+      modal.style.display = 'flex';
+    }
+
+    function closeFormModal() {
+      document.getElementById('formModal').style.display = 'none';
+    }
+
+    function saveLog(e) {
+      e.preventDefault();
+      
+      let finalGenres = [...selectedFormGenres];
+      const etcValue = document.getElementById('etcGenreInput').value.trim();
+      if (document.getElementById('etcChip').classList.contains('selected') && etcValue) {
+        finalGenres.push(etcValue);
+      }
+
+      const docId = document.getElementById('editDocId').value;
+      const logData = {
+        themeName: document.getElementById('themeName').value.trim(),
+        cafeName: document.getElementById('cafeName').value.trim(),
+        playDate: document.getElementById('playDate').value,
+        isSuccess: document.getElementById('isSuccess').value,
+        starRating: currentStarRating,
+        lockRating: currentLockRating,
+        genres: finalGenres,
+        timeLeft: document.getElementById('timeLeft').value.trim(),
+        hintCount: document.getElementById('hintCount').value.trim(),
+        partyMembers: document.getElementById('partyMembers').value.trim(),
+        memo: document.getElementById('memo').value.trim(),
+        image: currentBase64Image,
+        updatedAt: new Date().toISOString()
+      };
+
+      if (window.saveLogToFirestore) {
+        window.saveLogToFirestore(logData, docId);
+      }
+    }
+
+    function openDetailModal(docId) {
+      const logs = window.getLogsList();
+      const log = logs.find(l => l.docId === docId);
+      if (!log) return;
+
+      document.getElementById('detailTitle').innerText = log.themeName;
+      document.getElementById('detailCafe').innerText = log.cafeName;
+      document.getElementById('detailDate').innerText = log.playDate || '-';
+      document.getElementById('detailTime').innerText = log.timeLeft || '-';
+      document.getElementById('detailHint').innerText = log.hintCount || '-';
+      document.getElementById('detailParty').innerText = log.partyMembers || '-';
+      document.getElementById('detailMemo').innerText = log.memo || '작성된 후기가 없습니다.';
+
+      const badge = document.getElementById('detailBadge');
+      badge.innerText = log.isSuccess;
+      badge.className = log.isSuccess === '성공' ? 'badge badge-success' : 'badge badge-fail';
+
+      const stars = '★'.repeat(log.starRating || 0) + '☆'.repeat(5 - (log.starRating || 0));
+      const locks = '🔒'.repeat(log.lockRating || 0);
+      document.getElementById('detailRatings').innerHTML = `<span>${stars}</span> <span>${locks}</span>`;
+
+      const genresHtml = (log.genres || []).map(g => `<span class="genre-tag">${escapeHtml(g)}</span>`).join('');
+      document.getElementById('detailGenres').innerHTML = genresHtml;
+
+      const imgArea = document.getElementById('detailImageArea');
+      imgArea.innerHTML = log.image ? `<img src="${log.image}" class="detail-img">` : '';
+
+      document.getElementById('detailEditBtn').onclick = function() {
+        closeDetailModal();
+        openFormModal(docId);
+      };
+
+      document.getElementById('detailModal').style.display = 'flex';
+    }
+
+    function closeDetailModal() {
+      document.getElementById('detailModal').style.display = 'none';
+    }
+
+    function exportData() {
+      const logs = window.getLogsList();
+      if (logs.length === 0) {
+        alert("백업할 데이터가 없습니다.");
+        return;
+      }
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(logs, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `roomescape_backup_${new Date().toISOString().substring(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importedArray = JSON.parse(e.target.result);
+          if (Array.isArray(importedArray) && window.importBatchData) {
+            window.importBatchData(importedArray);
+          } else {
+            alert("올바르지 않은 백업 파일 형식입니다.");
+          }
+        } catch (err) {
+          alert("파일을 읽는 중 오류가 발생했습니다.");
+        }
+      };
+      reader.readAsText(file);
+    }
+  </script>
+</body>
+</html>
