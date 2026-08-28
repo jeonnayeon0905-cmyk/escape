@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>방탈출 로그북</title>
+
+  <!-- 홈화면 바로가기 아이콘 설정 (icon.png 파일 업로드 시 적용) -->
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon.png">
+
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <!-- Cropper.js (사진 자르기 라이브러리) -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
@@ -355,6 +360,16 @@
       document.getElementById('failCount').innerText = fail;
     }
 
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
     function renderLogs() {
       updateStats();
       const grid = document.getElementById('logsGrid');
@@ -445,7 +460,7 @@
       `;
     }
 
-    /* 백업 및 복구 기능 추가 */
+    /* 백업 및 복구 기능 */
     function exportData() {
       if (logs.length === 0) {
         alert("백업할 기록 데이터가 없습니다.");
@@ -734,18 +749,14 @@
     }
 
     function deleteLog(index) {
-      if (confirm('이 방탈출 기록을 삭제하시겠습니까?')) {
+      if (confirm('이 기록을 삭제하시겠습니까?')) {
         logs.splice(index, 1);
         saveLogsToStorage();
         renderLogs();
       }
     }
 
-    function escapeHtml(str) {
-      if (!str) return '';
-      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-    }
-
+    // 초기 실행
     renderLogs();
   </script>
 </body>
