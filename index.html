@@ -117,7 +117,6 @@
     .detail-img { width: 100%; max-height: 280px; object-fit: cover; border-radius: 12px; margin-bottom: 14px; }
     .detail-memo { background: #0f172a; padding: 14px; border-radius: 10px; font-size: 0.92rem; line-height: 1.5; color: var(--text-main); white-space: pre-wrap; margin-top: 12px; }
 
-    /* 로그인 안내 전용 카드 */
     .login-banner { background: var(--card-bg); border: 1px dashed var(--primary); border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 20px; }
     .login-banner h3 { font-size: 1.1rem; margin-bottom: 6px; }
     .login-banner p { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 16px; }
@@ -350,135 +349,8 @@
     </div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { 
-      getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged 
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { 
-      getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch 
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCQU0EEsfxFUz7HkZiHkO5Dbhr1IXsrOn4",
-      authDomain: "jeonnayeon0905-cmyk.firebaseapp.com",
-      projectId: "roomescape-log",
-      storageBucket: "roomescape-log.firebasestorage.app",
-      messagingSenderId: "457770219847",
-      appId: "1:457770219847:web:7f0454cd0e232eb6c3b462"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const provider = new GoogleAuthProvider();
-
-    let currentUser = null;
-    let logs = [];
-    let unsubscribe = null;
-
-    window.handleSignIn = async function() {
-      try {
-        await signInWithPopup(auth, provider);
-      } catch (err) {
-        alert("로그인 중 오류가 발생했습니다: " + err.message);
-      }
-    };
-
-    window.handleSignOut = function() {
-      if (confirm("로그아웃 하시겠습니까?")) {
-        signOut(auth);
-      }
-    };
-
-    onAuthStateChanged(auth, (user) => {
-      currentUser = user;
-      const loginBanner = document.getElementById('loginNotice');
-      const mainArea = document.getElementById('mainAppArea');
-      const btnLogin = document.getElementById('btnLogin');
-      const userInfo = document.getElementById('userInfo');
-
-      if (user) {
-        loginBanner.classList.add('hidden');
-        mainArea.classList.remove('hidden');
-        btnLogin.classList.add('hidden');
-        userInfo.classList.remove('hidden');
-
-        document.getElementById('userName').innerText = user.displayName || '사용자';
-        document.getElementById('userImg').src = user.photoURL || 'https://via.placeholder.com/32';
-
-        listenToLogs(user.uid);
-      } else {
-        loginBanner.classList.remove('hidden');
-        mainArea.classList.add('hidden');
-        btnLogin.classList.remove('hidden');
-        userInfo.classList.add('hidden');
-
-        logs = [];
-        if (unsubscribe) unsubscribe();
-        renderLogs();
-      }
-    });
-
-    function listenToLogs(userId) {
-      const q = query(
-        collection(db, 'users', userId, 'records'),
-        orderBy('playDate', 'desc')
-      );
-
-      unsubscribe = onSnapshot(q, (snapshot) => {
-        logs = snapshot.docs.map(docSnap => ({
-          docId: docSnap.id,
-          ...docSnap.data()
-        }));
-        renderLogs();
-      });
-    }
-
-    window.saveLogToFirestore = async function(logData, docId) {
-      if (!currentUser) return;
-      try {
-        if (docId) {
-          await updateDoc(doc(db, 'users', currentUser.uid, 'records', docId), logData);
-        } else {
-          await addDoc(collection(db, 'users', currentUser.uid, 'records'), logData);
-        }
-        closeFormModal();
-      } catch (e) {
-        alert("구글 서버 저장 실패: " + e.message);
-      }
-    };
-
-    window.deleteLogFromFirestore = async function(docId) {
-      if (!currentUser) return;
-      if (confirm('이 기록을 삭제하시겠습니까?')) {
-        try {
-          await deleteDoc(doc(db, 'users', currentUser.uid, 'records', docId));
-        } catch (e) {
-          alert("삭제 실패: " + e.message);
-        }
-      }
-    };
-
-    window.importBatchData = async function(importedArray) {
-      if (!currentUser) return;
-      try {
-        const batch = writeBatch(db);
-        importedArray.forEach(item => {
-          const newRef = doc(collection(db, 'users', currentUser.uid, 'records'));
-          batch.set(newRef, item);
-        });
-        await batch.commit();
-        alert("백업 파일의 기록이 성공적으로 구글 클라우드에 불러와졌습니다!");
-      } catch (e) {
-        alert("데이터 복구 중 오류 발생: " + e.message);
-      }
-    };
-
-    window.getLogsList = function() { return logs; };
-  </script>
-
   <script>
+    // 1. 일반 스크립트 영역 (UI 조작 및 UI 렌더링 함수들을 먼저 정의)
     let selectedFormGenres = [];
     let currentBase64Image = '';
     let currentStarRating = 0;
@@ -502,7 +374,7 @@
         .replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    function renderLogs() {
+    window.renderLogs = function() {
       const logs = window.getLogsList ? window.getLogsList() : [];
       updateStats(logs);
 
@@ -527,7 +399,7 @@
         grid.className = 'logs-grid';
         grid.innerHTML = sorted.map(log => createLogCardHtml(log)).join('');
       }
-    }
+    };
 
     function createLogCardHtml(log) {
       const stars = '★'.repeat(log.starRating || 0) + '☆'.repeat(5 - (log.starRating || 0));
@@ -715,7 +587,7 @@
       if (docId) {
         document.getElementById('formModalTitle').innerText = '기록 수정';
         document.getElementById('editDocId').value = docId;
-        const logs = window.getLogsList();
+        const logs = window.getLogsList ? window.getLogsList() : [];
         const item = logs.find(l => l.docId === docId);
         if (item) {
           document.getElementById('themeName').value = item.themeName || '';
@@ -798,7 +670,7 @@
     }
 
     function openDetailModal(docId) {
-      const logs = window.getLogsList();
+      const logs = window.getLogsList ? window.getLogsList() : [];
       const log = logs.find(l => l.docId === docId);
       if (!log) return;
 
@@ -837,7 +709,7 @@
     }
 
     function exportData() {
-      const logs = window.getLogsList();
+      const logs = window.getLogsList ? window.getLogsList() : [];
       if (logs.length === 0) {
         alert("백업할 데이터가 없습니다.");
         return;
@@ -870,6 +742,135 @@
       };
       reader.readAsText(file);
     }
+  </script>
+
+  <script type="module">
+    // 2. 파이어베이스 모듈 스크립트 영역
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { 
+      getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCQU0EEsfxFUz7HkZiHkO5Dbhr1IXsrOn4",
+      authDomain: "jeonnayeon0905-cmyk.firebaseapp.com",
+      projectId: "roomescape-log",
+      storageBucket: "roomescape-log.firebasestorage.app",
+      messagingSenderId: "457770219847",
+      appId: "1:457770219847:web:7f0454cd0e232eb6c3b462"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    let currentUser = null;
+    let logs = [];
+    let unsubscribe = null;
+
+    window.handleSignIn = async function() {
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (err) {
+        alert("로그인 중 오류가 발생했습니다: " + err.message);
+      }
+    };
+
+    window.handleSignOut = function() {
+      if (confirm("로그아웃 하시겠습니까?")) {
+        signOut(auth);
+      }
+    };
+
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      const loginBanner = document.getElementById('loginNotice');
+      const mainArea = document.getElementById('mainAppArea');
+      const btnLogin = document.getElementById('btnLogin');
+      const userInfo = document.getElementById('userInfo');
+
+      if (user) {
+        loginBanner.classList.add('hidden');
+        mainArea.classList.remove('hidden');
+        btnLogin.classList.add('hidden');
+        userInfo.classList.remove('hidden');
+
+        document.getElementById('userName').innerText = user.displayName || '사용자';
+        document.getElementById('userImg').src = user.photoURL || 'https://via.placeholder.com/32';
+
+        listenToLogs(user.uid);
+      } else {
+        loginBanner.classList.remove('hidden');
+        mainArea.classList.add('hidden');
+        btnLogin.classList.remove('hidden');
+        userInfo.classList.add('hidden');
+
+        logs = [];
+        if (unsubscribe) unsubscribe();
+        if (window.renderLogs) window.renderLogs();
+      }
+    });
+
+    function listenToLogs(userId) {
+      const q = query(
+        collection(db, 'users', userId, 'records'),
+        orderBy('playDate', 'desc')
+      );
+
+      unsubscribe = onSnapshot(q, (snapshot) => {
+        logs = snapshot.docs.map(docSnap => ({
+          docId: docSnap.id,
+          ...docSnap.data()
+        }));
+        if (window.renderLogs) window.renderLogs();
+      });
+    }
+
+    window.saveLogToFirestore = async function(logData, docId) {
+      if (!currentUser) return;
+      try {
+        if (docId) {
+          await updateDoc(doc(db, 'users', currentUser.uid, 'records', docId), logData);
+        } else {
+          await addDoc(collection(db, 'users', currentUser.uid, 'records'), logData);
+        }
+        closeFormModal();
+      } catch (e) {
+        alert("구글 서버 저장 실패: " + e.message);
+      }
+    };
+
+    window.deleteLogFromFirestore = async function(docId) {
+      if (!currentUser) return;
+      if (confirm('이 기록을 삭제하시겠습니까?')) {
+        try {
+          await deleteDoc(doc(db, 'users', currentUser.uid, 'records', docId));
+        } catch (e) {
+          alert("삭제 실패: " + e.message);
+        }
+      }
+    };
+
+    window.importBatchData = async function(importedArray) {
+      if (!currentUser) return;
+      try {
+        const batch = writeBatch(db);
+        importedArray.forEach(item => {
+          const newRef = doc(collection(db, 'users', currentUser.uid, 'records'));
+          batch.set(newRef, item);
+        });
+        await batch.commit();
+        alert("백업 파일의 기록이 성공적으로 구글 클라우드에 불러와졌습니다!");
+      } catch (e) {
+        alert("데이터 복구 중 오류 발생: " + e.message);
+      }
+    };
+
+    window.getLogsList = function() { return logs; };
   </script>
 </body>
 </html>
