@@ -6,8 +6,10 @@
   <title>방탈출 로그북</title>
 
   <link rel="manifest" href="./manifest.json">
-  <link rel="apple-touch-icon" href="./icon.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icon.png">
+  <!-- iOS 사파리 전용 및 절대 경로 아이콘 적용 (캐시 버스팅 포함) -->
+  <link rel="apple-touch-icon" sizes="180x180" href="https://jeonnayeon0905-cmyk.github.io/escape/icon.png?v=2">
+  <link rel="icon" type="image/png" sizes="192x192" href="https://jeonnayeon0905-cmyk.github.io/escape/icon.png?v=2">
+  <link rel="icon" type="image/png" sizes="512x512" href="https://jeonnayeon0905-cmyk.github.io/escape/icon.png?v=2">
   <meta name="theme-color" content="#0f172a">
 
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -350,7 +352,7 @@
   </div>
 
   <script>
-    // 1. 일반 스크립트 영역 (UI 조작 및 UI 렌더링 함수들을 먼저 정의)
+    // 1. 일반 스크립트 영역 (UI 조작 및 UI 렌더링)
     let selectedFormGenres = [];
     let currentBase64Image = '';
     let currentStarRating = 0;
@@ -694,9 +696,13 @@
       document.getElementById('detailGenres').innerHTML = genresHtml;
 
       const imgArea = document.getElementById('detailImageArea');
-      imgArea.innerHTML = log.image ? `<img src="${log.image}" class="detail-img">` : '';
+      if (log.image) {
+        imgArea.innerHTML = `<img src="${log.image}" class="detail-img">`;
+      } else {
+        imgArea.innerHTML = '';
+      }
 
-      document.getElementById('detailEditBtn').onclick = function() {
+      document.getElementById('detailEditBtn').onclick = () => {
         closeDetailModal();
         openFormModal(docId);
       };
@@ -711,56 +717,64 @@
     function exportData() {
       const logs = window.getLogsList ? window.getLogsList() : [];
       if (logs.length === 0) {
-        alert("백업할 데이터가 없습니다.");
+        alert('백업할 데이터가 없습니다.');
         return;
       }
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(logs, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `roomescape_backup_${new Date().toISOString().substring(0,10)}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
+      const dlAnchorElem = document.createElement('a');
+      dlAnchorElem.setAttribute("href", dataStr);
+      dlAnchorElem.setAttribute("download", `방탈출로그북_백업_${new Date().toISOString().substring(0, 10)}.json`);
+      document.body.appendChild(dlAnchorElem);
+      dlAnchorElem.click();
+      dlAnchorElem.remove();
     }
 
-    function importData(event) {
-      const file = event.target.files[0];
+    function importData(e) {
+      const file = e.target.files[0];
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = async function(evt) {
         try {
-          const importedArray = JSON.parse(e.target.result);
-          if (Array.isArray(importedArray) && window.importBatchData) {
-            window.importBatchData(importedArray);
+          const importedLogs = JSON.parse(evt.target.result);
+          if (Array.isArray(importedLogs)) {
+            if (confirm(`총 ${importedLogs.length}개의 기록을 복구(추가)하시겠습니까?`)) {
+              for (const item of importedLogs) {
+                delete item.docId;
+                await window.saveLogToFirestore(item, null, true);
+              }
+              alert('복구가 완료되었습니다.');
+            }
           } else {
-            alert("올바르지 않은 백업 파일 형식입니다.");
+            alert('올바르지 않은 백업 파일 형정입니다.');
           }
         } catch (err) {
-          alert("파일을 읽는 중 오류가 발생했습니다.");
+          alert('파일을 읽는 중 오류가 발생했습니다: ' + err.message);
         }
+        e.target.value = '';
       };
       reader.readAsText(file);
     }
   </script>
 
+  <!-- 2. Firebase SDK 및 연동 모듈 영역 -->
   <script type="module">
-    // 2. 파이어베이스 모듈 스크립트 영역
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { 
       getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { 
-      getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch 
+      getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+    // Firebase 설정을 필요에 맞게 입력하세요
     const firebaseConfig = {
-      apiKey: "AIzaSyCQU0EEsfxFUz7HkZiHkO5Dbhr1IXsrOn4",
+      apiKey: "YOUR_API_KEY",
       authDomain: "jeonnayeon0905-cmyk.firebaseapp.com",
       projectId: "roomescape-log",
-      storageBucket: "roomescape-log.firebasestorage.app",
-      messagingSenderId: "457770219847",
-      appId: "1:457770219847:web:7f0454cd0e232eb6c3b462"
+      storageBucket: "jeonnayeon0905-cmyk.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -769,108 +783,106 @@
     const provider = new GoogleAuthProvider();
 
     let currentUser = null;
-    let logs = [];
-    let unsubscribe = null;
+    let logsData = [];
+    let unsubscribeSnapshot = null;
 
     window.handleSignIn = async function() {
       try {
         await signInWithPopup(auth, provider);
       } catch (err) {
-        alert("로그인 중 오류가 발생했습니다: " + err.message);
+        if (err.code === 'auth/popup-closed-by-user') {
+          console.log('사용자가 로그인 팝업 창을 닫았습니다.');
+        } else {
+          alert("로그인 중 오류가 발생했습니다: " + err.message);
+        }
       }
     };
 
     window.handleSignOut = function() {
-      if (confirm("로그아웃 하시겠습니까?")) {
+      if (confirm('로그아웃 하시겠습니까?')) {
         signOut(auth);
       }
     };
 
     onAuthStateChanged(auth, (user) => {
       currentUser = user;
-      const loginBanner = document.getElementById('loginNotice');
-      const mainArea = document.getElementById('mainAppArea');
-      const btnLogin = document.getElementById('btnLogin');
+      const loginNotice = document.getElementById('loginNotice');
+      const mainAppArea = document.getElementById('mainAppArea');
       const userInfo = document.getElementById('userInfo');
+      const btnLogin = document.getElementById('btnLogin');
 
       if (user) {
-        loginBanner.classList.add('hidden');
-        mainArea.classList.remove('hidden');
+        loginNotice.classList.add('hidden');
+        mainAppArea.classList.remove('hidden');
         btnLogin.classList.add('hidden');
         userInfo.classList.remove('hidden');
 
+        document.getElementById('userImg').src = user.photoURL || '';
         document.getElementById('userName').innerText = user.displayName || '사용자';
-        document.getElementById('userImg').src = user.photoURL || 'https://via.placeholder.com/32';
 
         listenToLogs(user.uid);
       } else {
-        loginBanner.classList.remove('hidden');
-        mainArea.classList.add('hidden');
+        loginNotice.classList.remove('hidden');
+        mainAppArea.classList.add('hidden');
         btnLogin.classList.remove('hidden');
         userInfo.classList.add('hidden');
 
-        logs = [];
-        if (unsubscribe) unsubscribe();
-        if (window.renderLogs) window.renderLogs();
+        if (unsubscribeSnapshot) unsubscribeSnapshot();
+        logsData = [];
+        window.renderLogs();
       }
     });
 
-    function listenToLogs(userId) {
+    function listenToLogs(uid) {
+      if (unsubscribeSnapshot) unsubscribeSnapshot();
+
       const q = query(
-        collection(db, 'users', userId, 'records'),
-        orderBy('playDate', 'desc')
+        collection(db, "users", uid, "logs"), 
+        orderBy("playDate", "desc")
       );
 
-      unsubscribe = onSnapshot(q, (snapshot) => {
-        logs = snapshot.docs.map(docSnap => ({
-          docId: docSnap.id,
-          ...docSnap.data()
+      unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
+        logsData = snapshot.docs.map(doc => ({
+          docId: doc.id,
+          ...doc.data()
         }));
-        if (window.renderLogs) window.renderLogs();
+        window.renderLogs();
       });
     }
 
-    window.saveLogToFirestore = async function(logData, docId) {
+    window.getLogsList = function() {
+      return logsData;
+    };
+
+    window.saveLogToFirestore = async function(logData, docId = null, isBatch = false) {
       if (!currentUser) return;
+
       try {
         if (docId) {
-          await updateDoc(doc(db, 'users', currentUser.uid, 'records', docId), logData);
+          const docRef = doc(db, "users", currentUser.uid, "logs", docId);
+          await updateDoc(docRef, logData);
         } else {
-          await addDoc(collection(db, 'users', currentUser.uid, 'records'), logData);
+          await addDoc(collection(db, "users", currentUser.uid, "logs"), logData);
         }
-        closeFormModal();
-      } catch (e) {
-        alert("구글 서버 저장 실패: " + e.message);
+        if (!isBatch) {
+          closeFormModal();
+        }
+      } catch (err) {
+        console.error("저장 오류:", err);
+        alert("저장에 실패했습니다: " + err.message);
       }
     };
 
     window.deleteLogFromFirestore = async function(docId) {
       if (!currentUser) return;
-      if (confirm('이 기록을 삭제하시겠습니까?')) {
-        try {
-          await deleteDoc(doc(db, 'users', currentUser.uid, 'records', docId));
-        } catch (e) {
-          alert("삭제 실패: " + e.message);
-        }
-      }
-    };
+      if (!confirm('정말로 이 기록을 삭제하시겠습니까?')) return;
 
-    window.importBatchData = async function(importedArray) {
-      if (!currentUser) return;
       try {
-        const batch = writeBatch(db);
-        importedArray.forEach(item => {
-          const newRef = doc(collection(db, 'users', currentUser.uid, 'records'));
-          batch.set(newRef, item);
-        });
-        await batch.commit();
-        alert("백업 파일의 기록이 성공적으로 구글 클라우드에 불러와졌습니다!");
-      } catch (e) {
-        alert("데이터 복구 중 오류 발생: " + e.message);
+        await deleteDoc(doc(db, "users", currentUser.uid, "logs", docId));
+      } catch (err) {
+        alert("삭제 실패: " + err.message);
       }
     };
-
-    window.getLogsList = function() { return logs; };
   </script>
 </body>
 </html>
