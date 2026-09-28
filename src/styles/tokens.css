@@ -1,0 +1,96 @@
+/* =====================================================================
+   디자인 토큰 — 모든 화면은 이 값만 사용합니다. (자세한 설명: DESIGN.md)
+   ===================================================================== */
+:root {
+  /* 배경 — 짙은 밤하늘 네이비 */
+  --color-bg: #0b1030;
+  --color-bg-deep: #070a22;
+  --color-bg-glow: #1c2160;
+
+  /* 카드 / 표면 */
+  --color-surface: #151b45;
+  --color-surface-2: #1c2356;       /* 입력창, 눌린 상태 */
+  --color-surface-3: #252d6b;       /* 호버 */
+  --color-overlay: rgba(5, 7, 24, 0.72);
+
+  /* 테두리 */
+  --color-border: #2d3576;
+  --color-border-strong: #4450a8;
+  --color-border-focus: #8b8cff;
+
+  /* 포인트 (보라 → 파랑) */
+  --color-primary: #6d5efc;
+  --color-primary-2: #4c6ef5;
+  --color-primary-strong: #8b7dff;
+  --color-primary-soft: rgba(109, 94, 252, 0.16);
+  --gradient-primary: linear-gradient(135deg, #7b5cff 0%, #5468f0 100%);
+
+  /* 상태 */
+  --color-success: #5ee6b8;          /* 민트 */
+  --color-success-soft: rgba(94, 230, 184, 0.12);
+  --color-success-border: rgba(94, 230, 184, 0.55);
+  --color-fail: #ff7aa2;             /* 핑크 */
+  --color-fail-soft: rgba(255, 122, 162, 0.12);
+  --color-fail-border: rgba(255, 122, 162, 0.55);
+  --color-star: #ffd166;             /* 별 / 난이도 */
+  --color-star-empty: #4a5190;
+  --color-moon: #f3ecc8;
+  --color-title: #fff1c9;           /* 화면 제목 (달빛 크림색) */
+
+  /* 글자 */
+  --color-text: #f5f4ff;             /* 제목, 주요 정보 */
+  --color-text-sub: #c9cdf0;         /* 본문 */
+  --color-text-muted: #969cd0;       /* 라벨, 보조 */
+  --color-text-on-primary: #ffffff;
+
+  /* 글꼴 */
+  --font-sans: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont,
+    'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', system-ui, sans-serif;
+  --font-display: 'Galmuri11', var(--font-sans);   /* 큰 제목에만 사용하는 도트 폰트 */
+
+  --fs-xs: 0.75rem;   /* 12 */
+  --fs-sm: 0.8125rem; /* 13 */
+  --fs-md: 0.9375rem; /* 15 — 기본 본문 */
+  --fs-lg: 1.0625rem; /* 17 */
+  --fs-xl: 1.25rem;   /* 20 */
+  --fs-2xl: 1.625rem; /* 26 */
+  --fs-3xl: 2rem;     /* 32 — 화면 제목 */
+
+  /* 간격 (4px 단위) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* 모서리 */
+  --radius-sm: 8px;
+  --radius-md: 12px;    /* 입력창, 작은 버튼 */
+  --radius-lg: 16px;    /* 카드 */
+  --radius-xl: 20px;    /* 큰 버튼, 시트 */
+  --radius-pill: 999px; /* 배지 */
+
+  /* 그림자 — 절제해서 사용 */
+  --shadow-card: 0 4px 16px rgba(3, 5, 20, 0.35);
+  --shadow-raised: 0 8px 24px rgba(3, 5, 20, 0.5);
+  --shadow-primary: 0 6px 18px rgba(92, 88, 240, 0.35);
+  --focus-ring: 0 0 0 3px rgba(139, 140, 255, 0.45);
+
+  /* 크기 */
+  --app-max-width: 560px;   /* 모바일 우선. PC 에서도 이 폭으로 가운데 정렬 */
+  --gutter: 16px;
+  --tap-min: 48px;          /* 최소 터치 영역 */
+  --input-height: 52px;
+  --button-height: 56px;
+  --nav-height: 68px;
+
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur: 160ms;
+}
+
+@media (min-width: 400px) {
+  :root { --gutter: 20px; }
+}
