@@ -3,11 +3,12 @@ import { useBlocker, useLocation, useNavigate, useParams } from 'react-router-do
 import Hero from '../components/Hero';
 import Icon from '../components/Icon';
 import PixelIcon from '../components/PixelIcon';
+import PhotoField from '../components/PhotoField';
 import { ConfirmDialog, EmptyState, ErrorState, LoadingState, Spinner } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
 import { useRecords } from '../context/RecordsContext';
 import { useToast } from '../context/ToastContext';
-import { LIMITS, validate } from '../lib/records';
+import { isPhotoSupported, LIMITS, validate } from '../lib/records';
 import { formatDateTime, formatDateWithDay, toISODate } from '../lib/date';
 
 const DIFFICULTY_TEXT = ['', '쉬움', '무난함', '보통', '어려움', '매우 어려움'];
@@ -119,9 +120,11 @@ function FormBody({ isEdit, record }) {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const [draftNotice, setDraftNotice] = useState(Boolean(restoredDraft));
+  // 사진: null (변경 없음) | { blob, preview, source } | { remove: true }. 임시저장에는 포함하지 않음
+  const [photo, setPhoto] = useState(null);
   const allowLeave = useRef(false);
 
-  const dirty = !sameForm(form, initial);
+  const dirty = !sameForm(form, initial) || photo !== null;
   const errors = validate(form);
   const showError = (k) => (submitted || touched[k]) && errors[k];
 
@@ -175,7 +178,7 @@ function FormBody({ isEdit, record }) {
     setSaving(true);
     try {
       // DB 저장이 성공해야만 아래로 진행된다
-      const row = isEdit ? await update(base, form) : await create(form);
+      const row = isEdit ? await update(base, form, photo || undefined) : await create(form, photo || undefined);
       if (!isEdit && user) clearDraft(user.id);
       allowLeave.current = true;
       toast.success(isEdit ? '수정한 내용을 저장했어요.' : '기록을 저장했어요!');
@@ -238,6 +241,20 @@ function FormBody({ isEdit, record }) {
         )}
 
         <form className="form-card" onSubmit={onSubmit} noValidate>
+          <Field id={`${uid}-photo`} label="사진" icon={<Icon name="image" size={24} className="field__icon--photo" />} stacked>
+            <PhotoField
+              id={`${uid}-photo`}
+              existingPath={isEdit ? base.photo_path : null}
+              value={photo}
+              onChange={(v) => {
+                setPhoto(v);
+                setSaveError(null);
+              }}
+              disabled={saving}
+              supported={isPhotoSupported()}
+            />
+          </Field>
+
           <Field id={`${uid}-escape_date`} label="탈출 날짜" icon={<PixelIcon name="calendar" size={24} />} error={showError('escape_date')} required>
             <div className="date-input">
               <input
@@ -427,7 +444,9 @@ function FormBody({ isEdit, record }) {
             ? '저장이 끝날 때까지 잠시만 기다려주세요.'
             : isEdit
               ? '수정한 내용은 저장되지 않아요.'
-              : '작성 중인 내용은 이 기기에 임시저장되어 다음에 이어서 쓸 수 있어요.'
+              : photo?.blob
+                ? '작성 중인 글은 임시저장되지만, 선택한 사진은 저장되지 않아요.'
+                : '작성 중인 내용은 이 기기에 임시저장되어 다음에 이어서 쓸 수 있어요.'
         }
         confirmLabel={saving ? '기다리기' : '나가기'}
         cancelLabel={saving ? '닫기' : '계속 작성'}

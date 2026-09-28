@@ -28,6 +28,14 @@
 - 삭제 전 "정말 이 기록을 삭제하시겠습니까?" 확인
 - 계정 메뉴(우측 상단 프로필)에서 전체 기록 JSON 백업 파일 다운로드
 
+## 사진
+- 기록 추가/수정 화면에서 **사진 추가** → 보관함에서 고르면 바로 **자르기 화면**이 열림
+  (비율 4:3 · 1:1 · 3:4 · 16:9, 드래그로 위치 이동, 두 손가락/슬라이더로 확대, 좌우 90° 회전)
+- 저장 시 긴 변 1600px JPEG 로 줄여 Supabase Storage 비공개 버킷(`escape-photos/<user_id>/...`)에 업로드
+- 사진은 본인만 볼 수 있음 (Storage 정책 + 1시간짜리 서명 주소로 표시)
+- DB 저장이 실패하면 방금 올린 사진을 지우고, 사진을 바꾸거나 기록을 삭제하면 이전 사진도 정리
+- 작성 중 임시저장에는 사진이 포함되지 않음
+
 ---
 
 ## 설정 방법 (처음 한 번)
@@ -36,7 +44,10 @@
 1. <https://supabase.com> 에서 새 프로젝트 생성
 2. **SQL Editor** 에서 [`supabase/schema.sql`](supabase/schema.sql) 내용을 전부 붙여넣고 **Run**
    → `escape_records` 테이블, 인덱스, `updated_at` 트리거, RLS 정책이 만들어집니다.
-3. **Project Settings → API** 에서 `Project URL` 과 `anon public` 키를 복사
+3. 이어서 [`supabase/002_photos.sql`](supabase/002_photos.sql) 도 같은 방법으로 **Run** (사진 기능)
+   → 기록에 `photo_path` 컬럼 추가, 비공개 Storage 버킷 `escape-photos` 생성, 본인 폴더만 접근 가능한 정책 설정
+   → 실행 전에도 앱은 사진 없이 기존대로 동작하며, 기록 화면에 실행 안내가 표시됩니다.
+4. **Project Settings → API** 에서 `Project URL` 과 `anon public` 키를 복사
 
 ### 2. Google 로그인 연결
 1. [Google Cloud Console](https://console.cloud.google.com/apis/credentials) → **OAuth 클라이언트 ID 만들기** (웹 애플리케이션)

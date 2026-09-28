@@ -1,17 +1,14 @@
 import { Link } from 'react-router-dom';
 import Icon from './Icon';
-import PixelIcon from './PixelIcon';
+import { CardThumb } from './Photo';
 import { ResultBadge, Stars } from './ui';
 import { formatDate } from '../lib/date';
 
 export default function RecordCard({ record }) {
-  const ok = record.result === 'success';
   return (
     <li>
       <Link to={`/records/${record.id}`} className="record-card">
-        <span className={`record-card__thumb record-card__thumb--${ok ? 'success' : 'fail'}`} aria-hidden="true">
-          <PixelIcon name={ok ? 'key' : 'lock'} size={30} />
-        </span>
+        <CardThumb record={record} />
         <span className="record-card__body">
           <span className="record-card__top">
             <time className="record-card__date" dateTime={record.escape_date}>{formatDate(record.escape_date)}</time>

@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import Hero from '../components/Hero';
 import Icon from '../components/Icon';
 import PixelIcon from '../components/PixelIcon';
+import { DetailPhoto } from '../components/Photo';
 import { ConfirmDialog, EmptyState, ErrorState, LoadingState, ResultBadge, Stars } from '../components/ui';
 import { useRecords } from '../context/RecordsContext';
 import { useToast } from '../context/ToastContext';
@@ -84,9 +85,15 @@ export default function RecordDetail() {
     content = (
       <>
         <section className="summary-card">
-          <span className={`summary-card__thumb record-card__thumb--${ok ? 'success' : 'fail'}`} aria-hidden="true">
-            <PixelIcon name={ok ? 'key' : 'lock'} size={44} />
-          </span>
+          <DetailPhoto
+            path={record.photo_path}
+            alt={`${record.theme_name} 사진`}
+            fallback={
+              <span className={`summary-card__thumb record-card__thumb--${ok ? 'success' : 'fail'}`} aria-hidden="true">
+                <PixelIcon name={ok ? 'key' : 'lock'} size={44} />
+              </span>
+            }
+          />
           <div className="summary-card__text">
             <div className="summary-card__top">
               <time dateTime={record.escape_date} className="summary-card__date">{formatDateWithDay(record.escape_date)}</time>

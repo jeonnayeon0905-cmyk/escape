@@ -2,8 +2,17 @@ import { supabase } from './supabase';
 import { AppError, toAppError } from './errors';
 
 const TABLE = 'escape_records';
-const COLUMNS =
+const BASE_COLUMNS =
   'id, user_id, escape_date, cafe_name, theme_name, result, companions, difficulty, review, created_at, updated_at';
+
+// 사진 컬럼(photo_path)은 002_photos.sql 실행 후에 생긴다. 없으면 사진 없이 기존대로 동작.
+let photoColumn = true;
+const cols = () => (photoColumn ? `${BASE_COLUMNS}, photo_path` : BASE_COLUMNS);
+export const isPhotoSupported = () => photoColumn;
+const isMissingPhotoColumn = (err) => {
+  const e = err?.cause || err;
+  return (e?.code === '42703' || e?.code === 'PGRST204') && /photo_path/.test(String(e?.message || ''));
+};
 const TIMEOUT_MS = 15000;
 
 export const LIMITS = { cafe: 100, theme: 100, companions: 200, review: 5000 };
@@ -60,10 +69,20 @@ export function validate(p) {
 }
 
 export async function fetchRecords(userId) {
+  try {
+    return await selectAll(userId);
+  } catch (err) {
+    if (!photoColumn || !isMissingPhotoColumn(err)) throw err;
+    photoColumn = false;
+    return selectAll(userId);
+  }
+}
+
+function selectAll(userId) {
   return run(() =>
     supabase
       .from(TABLE)
-      .select(COLUMNS)
+      .select(cols())
       .eq('user_id', userId) // RLS 로 이미 보호되지만 명시적으로 한 번 더 제한
       .order('escape_date', { ascending: false })
       .order('created_at', { ascending: false }),
@@ -72,7 +91,7 @@ export async function fetchRecords(userId) {
 
 export async function createRecord(userId, payload) {
   const row = await run(() =>
-    supabase.from(TABLE).insert({ ...payload, user_id: userId }).select(COLUMNS).single(),
+    supabase.from(TABLE).insert({ ...payload, user_id: userId }).select(cols()).single(),
   );
   if (!row?.id) throw new AppError('저장 결과를 확인하지 못했어요. 목록을 새로고침해 확인해주세요.', { kind: 'db' });
   return row;
@@ -90,7 +109,7 @@ export async function updateRecord(userId, original, payload) {
       .eq('id', original.id)
       .eq('user_id', userId)
       .eq('updated_at', original.updated_at)
-      .select(COLUMNS)
+      .select(cols())
       .maybeSingle(),
   );
   if (!row) {
